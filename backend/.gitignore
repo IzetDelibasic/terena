@@ -1,0 +1,50 @@
+# Build and publish folders
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# VS Code
+.vscode/
+
+# Rider
+.idea/
+*.iml
+
+# Mac
+.DS_Store
+
+# Logs
+*.log
+
+# Configuration
+appsettings.*.json
+!appsettings.json
+
+# Others
+*.swp
+*.tmp
+
+# Flutter/other mobile artifacts (if any accidentally appear)
+*.apk
+*.ipa
+build/
+
+# Node/npm (if any accidentally appear)
+node_modules/
+
+# Test results
+TestResults/
+
+# Coverage
+coverage/
+
+# Generated files
+wwwroot/
+
+# Ignore secrets
+secrets.json
