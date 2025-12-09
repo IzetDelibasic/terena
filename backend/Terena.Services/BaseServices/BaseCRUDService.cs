@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Mapster;
 using Terena.Models.SearchObjects;
 using Terena.Services.BaseInterfaces;

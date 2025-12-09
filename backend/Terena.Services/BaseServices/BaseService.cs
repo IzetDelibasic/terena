@@ -39,9 +39,9 @@ public abstract class BaseService<TModel, TSearch, TDbEntity> : IService<TModel,
             query = ApplySorting(query, search.OrderBy, search.SortDirection);
         }
 
-        if (search?.Page.HasValue && search.PageSize.HasValue)
+        if ((search?.Page.HasValue ?? false) && (search?.PageSize.HasValue ?? false))
         {
-            query = query.Skip((search.Page.Value - 1) * search.PageSize.Value).Take(search.PageSize.Value);
+            query = query.Skip((search.Page!.Value - 1) * search.PageSize!.Value).Take(search.PageSize.Value);
         }
 
         var list = await query.ToListAsync();
