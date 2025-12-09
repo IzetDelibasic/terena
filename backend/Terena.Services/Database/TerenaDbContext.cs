@@ -11,6 +11,9 @@ namespace Terena.Services.Database
         public DbSet<OperatingHour> OperatingHours { get; set; }
         public DbSet<CancellationPolicy> CancellationPolicies { get; set; }
         public DbSet<Discount> Discounts { get; set; }
+        public DbSet<User> Users { get; set; }
+        public DbSet<Court> Courts { get; set; }
+        public DbSet<Booking> Bookings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -35,6 +38,39 @@ namespace Terena.Services.Database
                 .WithOne(d => d.Venue)
                 .HasForeignKey<Discount>(d => d.VenueId)
                 .IsRequired(false);
+
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Username)
+                .IsUnique();
+
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Email)
+                .IsUnique();
+
+            modelBuilder.Entity<Court>()
+                .HasOne(c => c.Venue)
+                .WithMany(v => v.Courts)
+                .HasForeignKey(c => c.VenueId);
+
+            modelBuilder.Entity<Booking>()
+                .HasOne(b => b.User)
+                .WithMany(u => u.Bookings)
+                .HasForeignKey(b => b.UserId);
+
+            modelBuilder.Entity<Booking>()
+                .HasOne(b => b.Venue)
+                .WithMany(v => v.Bookings)
+                .HasForeignKey(b => b.VenueId);
+
+            modelBuilder.Entity<Booking>()
+                .HasOne(b => b.Court)
+                .WithMany(c => c.Bookings)
+                .HasForeignKey(b => b.CourtId)
+                .IsRequired(false);
+
+            modelBuilder.Entity<Booking>()
+                .HasIndex(b => b.BookingNumber)
+                .IsUnique();
         }
     }
 }
