@@ -27,12 +27,14 @@ namespace Terena.Services.Database
             modelBuilder.Entity<Venue>()
                 .HasOne(v => v.CancellationPolicy)
                 .WithOne(c => c.Venue)
-                .HasForeignKey<CancellationPolicy>(c => c.VenueId);
+                .HasForeignKey<CancellationPolicy>(c => c.VenueId)
+                .IsRequired(false);
 
             modelBuilder.Entity<Venue>()
                 .HasOne(v => v.Discount)
                 .WithOne(d => d.Venue)
-                .HasForeignKey<Discount>(d => d.VenueId);
+                .HasForeignKey<Discount>(d => d.VenueId)
+                .IsRequired(false);
         }
     }
 }

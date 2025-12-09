@@ -5,6 +5,6 @@ namespace Terena.Services.BaseInterfaces;
 
 public interface IService<TModel, TSearch> where TSearch : BaseSearchObject
 {
-    PagedResult<TModel> GetPaged(TSearch search);
+    Task<PagedResult<TModel>> GetPagedAsync(TSearch search);
     TModel GetById(int id);
 }

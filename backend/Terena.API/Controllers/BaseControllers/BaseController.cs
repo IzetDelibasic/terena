@@ -19,9 +19,9 @@ public class BaseController<TModel, TSearch> : ControllerBase
 
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public virtual PagedResult<TModel> GetList([FromQuery] TSearch searchObject)
+    public virtual async Task<PagedResult<TModel>> GetList([FromQuery] TSearch searchObject)
     {
-        return _service.GetPaged(searchObject);
+        return await _service.GetPagedAsync(searchObject);
     }
 
     [HttpGet("{id}")]

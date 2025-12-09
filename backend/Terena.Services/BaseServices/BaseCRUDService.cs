@@ -31,16 +31,27 @@ public abstract class BaseCRUDService<TModel, TSearch, TDbEntity, TInsert, TUpda
     public virtual TModel Update(int id, TUpdate request)
     {
         var set = Context.Set<TDbEntity>();
-        var entity = set.Find(id);
-        
+        TDbEntity entity;
+        if (typeof(ISoftDeletable).IsAssignableFrom(typeof(TDbEntity)))
+        {
+            entity = set
+                .Cast<ISoftDeletable>()
+                .Where(e => !e.IsDeleted)
+                .Cast<TDbEntity>()
+                .FirstOrDefault(e => EF.Property<int>(e, "Id") == id);
+        }
+        else
+        {
+            entity = set.Find(id);
+        }
+
         if (entity == null)
         {
             throw new Exception("Unable to find entity with the provided id!");
         }
 
-        BeforeUpdate(request, entity);
-        
         request.Adapt(entity);
+        BeforeUpdate(request, entity);
         Context.SaveChanges();
 
         AfterUpdate(request, entity);
@@ -57,12 +68,17 @@ public abstract class BaseCRUDService<TModel, TSearch, TDbEntity, TInsert, TUpda
             throw new Exception("Unable to find entity with the provided id!");
         }
 
+        if (entity is ISoftDeletable softDeletableEntity && softDeletableEntity.IsDeleted)
+        {
+            throw new Exception("Entity is already deleted!");
+        }
+
         BeforeDelete(id, entity);
 
-        if (entity is ISoftDeletable softDeletableEntity)
+        if (entity is ISoftDeletable softDeletableEntity2)
         {
-            softDeletableEntity.IsDeleted = true;
-            softDeletableEntity.VrijemeBrisanja = DateTime.Now;
+            softDeletableEntity2.IsDeleted = true;
+            softDeletableEntity2.DeleteTime = DateTime.Now;
             Context.Update(entity);
         }
         else

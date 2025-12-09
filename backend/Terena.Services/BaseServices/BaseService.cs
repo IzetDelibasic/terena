@@ -21,7 +21,7 @@ public abstract class BaseService<TModel, TSearch, TDbEntity> : IService<TModel,
         Context = context;
     }
 
-    public virtual Terena.Models.HelperClasses.PagedResult<TModel> GetPaged(TSearch search)
+    public virtual async Task<Terena.Models.HelperClasses.PagedResult<TModel>> GetPagedAsync(TSearch search)
     {
         var query = Context.Set<TDbEntity>().AsQueryable();
 
@@ -32,19 +32,19 @@ public abstract class BaseService<TModel, TSearch, TDbEntity> : IService<TModel,
 
         query = AddFilter(search, query);
 
-        int count = query.Count();
+        int count = await query.CountAsync();
 
         if (!string.IsNullOrEmpty(search?.OrderBy) && !string.IsNullOrEmpty(search?.SortDirection))
         {
             query = ApplySorting(query, search.OrderBy, search.SortDirection);
         }
 
-        if (search?.Page.HasValue == true && search.PageSize.HasValue == true)
+        if (search?.Page.HasValue && search.PageSize.HasValue)
         {
             query = query.Skip((search.Page.Value - 1) * search.PageSize.Value).Take(search.PageSize.Value);
         }
 
-        var list = query.ToList();
+        var list = await query.ToListAsync();
         var result = list.Adapt<List<TModel>>();
 
         return new Terena.Models.HelperClasses.PagedResult<TModel>
@@ -57,6 +57,31 @@ public abstract class BaseService<TModel, TSearch, TDbEntity> : IService<TModel,
     public virtual TModel GetById(int id)
     {
         var entity = Context.Set<TDbEntity>().Find(id);
+        if (entity != null)
+        {
+            var softDeletable = entity as ISoftDeletable;
+            if (softDeletable != null && softDeletable.IsDeleted)
+            {
+                return null;
+            }
+            return entity.Adapt<TModel>();
+        }
+        return null;
+    }
+
+    public virtual TModel GetById(int id, string includeTables = null)
+    {
+        TDbEntity entity;
+        if (!string.IsNullOrEmpty(includeTables))
+        {
+            var query = Context.Set<TDbEntity>().AsQueryable();
+            query = ApplyIncludes(query, includeTables);
+            entity = query.FirstOrDefault(e => EF.Property<int>(e, "Id") == id);
+        }
+        else
+        {
+            entity = Context.Set<TDbEntity>().Find(id);
+        }
         return entity != null ? entity.Adapt<TModel>() : null;
     }
 
@@ -67,14 +92,28 @@ public abstract class BaseService<TModel, TSearch, TDbEntity> : IService<TModel,
 
     private IQueryable<TDbEntity> ApplyIncludes(IQueryable<TDbEntity> query, string includes)
     {
+        var allowedIncludes = new HashSet<string>(new[] {
+            "Amenities",
+            "OperatingHours",
+            "CancellationPolicy",
+            "Discount"
+        }, StringComparer.OrdinalIgnoreCase);
         try
         {
             var tableIncludes = includes.Split(',');
-            query = tableIncludes.Aggregate(query, (current, inc) => current.Include(inc));
+            foreach (var inc in tableIncludes)
+            {
+                var trimmedInc = inc.Trim();
+                if (!allowedIncludes.Contains(trimmedInc))
+                {
+                    throw new Exception($"Include path '{trimmedInc}' is not allowed.");
+                }
+                query = query.Include(trimmedInc);
+            }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            throw new Exception("Invalid include list!");
+            throw new Exception("Invalid include list!", ex);
         }
 
         return query;
@@ -82,13 +121,24 @@ public abstract class BaseService<TModel, TSearch, TDbEntity> : IService<TModel,
 
     private IQueryable<TDbEntity> ApplySorting(IQueryable<TDbEntity> query, string orderBy, string sortDirection)
     {
+        var validProperties = typeof(TDbEntity).GetProperties().Select(p => p.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        if (!validProperties.Contains(orderBy))
+        {
+            throw new Exception($"Invalid OrderBy column: {orderBy}");
+        }
+        var validDirections = new[] { "asc", "desc" };
+        if (!validDirections.Contains(sortDirection?.ToLowerInvariant()))
+        {
+            throw new Exception($"Invalid SortDirection: {sortDirection}");
+        }
+
         try
         {
             query = query.OrderBy($"{orderBy} {sortDirection}");
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            throw new Exception("Invalid sorting!");
+            throw new Exception("Invalid sorting!", ex);
         }
 
         return query;

@@ -12,15 +12,15 @@ using Terena.Services.Database;
 namespace Terena.Services.Migrations
 {
     [DbContext(typeof(TerenaDbContext))]
-    [Migration("20251208005735_InitialVenue")]
-    partial class InitialVenue
+    [Migration("20251209134504_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.0")
+                .HasAnnotation("ProductVersion", "8.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);

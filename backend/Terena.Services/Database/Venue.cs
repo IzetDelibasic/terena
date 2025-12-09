@@ -19,8 +19,8 @@ namespace Terena.Services.Database
         public string VenueImageUrl { get; set; }
         public List<VenueAmenity> Amenities { get; set; }
         public List<OperatingHour> OperatingHours { get; set; }
-        public CancellationPolicy CancellationPolicy { get; set; }
-        public Discount Discount { get; set; }
+        public CancellationPolicy? CancellationPolicy { get; set; }
+        public Discount? Discount { get; set; }
     }
 
     public class VenueAmenity
