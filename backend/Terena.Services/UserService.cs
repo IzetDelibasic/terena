@@ -54,9 +54,7 @@ namespace Terena.Services
 
         public override void BeforeInsert(UserInsertRequest request, User entity)
         {
-            entity.PasswordSalt = BCrypt.Net.BCrypt.GenerateSalt();
-            entity.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password, entity.PasswordSalt);
-            
+            entity.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
             entity.RegistrationDate = DateTime.UtcNow;
             entity.Status = UserStatus.Active;
             entity.Role = request.Role;
@@ -66,8 +64,7 @@ namespace Terena.Services
         {
             if (!string.IsNullOrWhiteSpace(request.Password))
             {
-                entity.PasswordSalt = BCrypt.Net.BCrypt.GenerateSalt();
-                entity.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password, entity.PasswordSalt);
+                entity.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
             }
 
             if (!string.IsNullOrWhiteSpace(request.Username))
@@ -85,8 +82,6 @@ namespace Terena.Services
             if (!string.IsNullOrWhiteSpace(request.Address))
                 entity.Address = request.Address;
             
-            if (request.Role.HasValue)
-                entity.Role = request.Role.Value;
         }
 
         public async Task<UserModel> BlockUser(int id, string reason)
@@ -136,8 +131,9 @@ namespace Terena.Services
             var totalBookings = bookings.Count;
             var completedBookings = bookings.Count(b => b.Status == BookingStatus.Completed);
             var cancelledBookings = bookings.Count(b => b.Status == BookingStatus.Cancelled);
+            var nonCancelledBookings = bookings.Count(b => b.Status != BookingStatus.Cancelled);
             var totalSpent = bookings.Where(b => b.Status != BookingStatus.Cancelled).Sum(b => b.TotalPrice);
-            var averagePerBooking = totalBookings > 0 ? totalSpent / totalBookings : 0;
+            var averagePerBooking = nonCancelledBookings > 0 ? totalSpent / nonCancelledBookings : 0;
 
             var favoriteVenue = bookings
                 .GroupBy(b => b.VenueId)

@@ -1,5 +1,4 @@
 using Terena.Models.Enums;
-using Terena.Models.SearchObjects;
 
 namespace Terena.Models.SearchObjects
 {

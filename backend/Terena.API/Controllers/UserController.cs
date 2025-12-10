@@ -40,9 +40,4 @@ namespace Terena.API.Controllers
             return Ok(result);
         }
     }
-
-    public class BlockUserRequest
-    {
-        public string Reason { get; set; }
-    }
 }

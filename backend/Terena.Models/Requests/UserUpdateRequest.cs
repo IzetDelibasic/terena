@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Terena.Models.Enums;
 
 namespace Terena.Models.Requests
@@ -5,6 +6,7 @@ namespace Terena.Models.Requests
     public class UserUpdateRequest
     {
         public string? Username { get; set; }
+        [EmailAddress]
         public string? Email { get; set; }
         public string? Password { get; set; }
         public string? Phone { get; set; }

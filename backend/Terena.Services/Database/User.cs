@@ -10,7 +10,6 @@ namespace Terena.Services.Database
         public string Username { get; set; }
         public string Email { get; set; }
         public string PasswordHash { get; set; }
-        public string PasswordSalt { get; set; }
         public string? Phone { get; set; }
         public string? Country { get; set; }
         public string? Address { get; set; }
@@ -23,7 +22,7 @@ namespace Terena.Services.Database
         
         public bool IsDeleted { get; set; }
         public DateTime? DeleteTime { get; set; }
-        
+
         public ICollection<Booking> Bookings { get; set; }
     }
 }
