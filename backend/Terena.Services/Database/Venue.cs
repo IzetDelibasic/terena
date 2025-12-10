@@ -21,6 +21,9 @@ namespace Terena.Services.Database
         public List<OperatingHour> OperatingHours { get; set; }
         public CancellationPolicy? CancellationPolicy { get; set; }
         public Discount? Discount { get; set; }
+        
+        public ICollection<Court> Courts { get; set; }
+        public ICollection<Booking> Bookings { get; set; }
     }
 
     public class VenueAmenity
