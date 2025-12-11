@@ -14,6 +14,67 @@ namespace Terena.Services
         {
         }
 
+        public override async Task<Terena.Models.HelperClasses.PagedResult<CourtDTO>> GetPagedAsync(CourtSearchObject search)
+        {
+            var query = Context.Set<Court>().Include(c => c.Venue).AsQueryable();
+
+            if (!string.IsNullOrEmpty(search?.IncludeTables))
+            {
+                query = ApplyIncludes(query, search.IncludeTables);
+            }
+
+            query = AddFilter(search, query);
+
+            int count = await query.CountAsync();
+
+            if (!string.IsNullOrEmpty(search?.OrderBy) && !string.IsNullOrEmpty(search?.SortDirection))
+            {
+                query = ApplySorting(query, search.OrderBy, search.SortDirection);
+            }
+
+            if ((search?.Page.HasValue ?? false) && (search?.PageSize.HasValue ?? false))
+            {
+                query = query.Skip((search.Page!.Value - 1) * search.PageSize!.Value).Take(search.PageSize.Value);
+            }
+
+            var list = await query.ToListAsync();
+            var result = list.Select(c => new CourtDTO
+            {
+                Id = c.Id,
+                VenueId = c.VenueId,
+                VenueName = c.Venue?.Name,
+                CourtType = c.CourtType,
+                Name = c.Name,
+                IsAvailable = c.IsAvailable
+            }).ToList();
+
+            return new Terena.Models.HelperClasses.PagedResult<CourtDTO>
+            {
+                ResultList = result,
+                Count = count
+            };
+        }
+
+        public override CourtDTO GetById(int id)
+        {
+            var entity = Context.Set<Court>().Include(c => c.Venue).FirstOrDefault(c => c.Id == id);
+            
+            if (entity != null)
+            {
+                return new CourtDTO
+                {
+                    Id = entity.Id,
+                    VenueId = entity.VenueId,
+                    VenueName = entity.Venue?.Name,
+                    CourtType = entity.CourtType,
+                    Name = entity.Name,
+                    IsAvailable = entity.IsAvailable
+                };
+            }
+            
+            return null;
+        }
+
         public override IQueryable<Court> AddFilter(CourtSearchObject search, IQueryable<Court> query)
         {
             if (search.VenueId.HasValue)
