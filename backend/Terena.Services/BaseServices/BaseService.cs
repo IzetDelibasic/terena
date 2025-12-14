@@ -90,13 +90,14 @@ public abstract class BaseService<TModel, TSearch, TDbEntity> : IService<TModel,
         return query;
     }
 
-    private IQueryable<TDbEntity> ApplyIncludes(IQueryable<TDbEntity> query, string includes)
+    protected IQueryable<TDbEntity> ApplyIncludes(IQueryable<TDbEntity> query, string includes)
     {
         var allowedIncludes = new HashSet<string>(new[] {
             "Amenities",
             "OperatingHours",
             "CancellationPolicy",
-            "Discount"
+            "Discount",
+            "Venue"
         }, StringComparer.OrdinalIgnoreCase);
         try
         {
@@ -119,7 +120,7 @@ public abstract class BaseService<TModel, TSearch, TDbEntity> : IService<TModel,
         return query;
     }
 
-    private IQueryable<TDbEntity> ApplySorting(IQueryable<TDbEntity> query, string orderBy, string sortDirection)
+    protected IQueryable<TDbEntity> ApplySorting(IQueryable<TDbEntity> query, string orderBy, string sortDirection)
     {
         var validProperties = typeof(TDbEntity).GetProperties().Select(p => p.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
         if (!validProperties.Contains(orderBy))
