@@ -8,5 +8,6 @@ namespace Terena.Models.DTOs
         public string CourtType { get; set; }
         public string Name { get; set; }
         public bool IsAvailable { get; set; }
+        public int MaxCapacity { get; set; }
     }
 }

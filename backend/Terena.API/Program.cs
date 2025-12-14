@@ -14,6 +14,7 @@ builder.Services.AddDbContext<Terena.Services.Database.TerenaDbContext>(options 
 builder.Services.AddScoped<Terena.Services.Interfaces.IVenueService, Terena.Services.VenueService>();
 builder.Services.AddScoped<Terena.Services.Interfaces.IUserService, Terena.Services.UserService>();
 builder.Services.AddScoped<Terena.Services.Interfaces.ICourtService, Terena.Services.CourtService>();
+builder.Services.AddScoped<Terena.Services.Interfaces.IBookingService, Terena.Services.BookingService>();
 
 var app = builder.Build();
 

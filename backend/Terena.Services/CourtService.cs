@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Mapster;
 using Terena.Models.DTOs;
 using Terena.Models.Requests;
 using Terena.Models.SearchObjects;
