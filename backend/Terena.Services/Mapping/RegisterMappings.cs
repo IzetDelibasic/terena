@@ -21,7 +21,7 @@ namespace Terena.Services.Mapping
                 .Map(dest => dest.VenueAverageRating, src => 0m)  
                 .Map(dest => dest.VenueTotalReviews, src => 0)    
                 .Map(dest => dest.CourtName, src => src.Court != null ? src.Court.Name : null)
-                .Map(dest => dest.CourtMaxCapacity, src => src.Court != null ? (int?)src.Court.MaxCapacity : null);
+                .Map(dest => dest.CourtMaxCapacity, src => src.Court != null ? src.Court.MaxCapacity : null);
         }
     }
 }

@@ -19,7 +19,7 @@ namespace Terena.Models.DTOs
         public int VenueTotalReviews { get; set; }
         public int? CourtId { get; set; }
         public string? CourtName { get; set; }
-        public int? CourtMaxCapacity { get; set; }
+        public string? CourtMaxCapacity { get; set; }
         public DateTime BookingDate { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }

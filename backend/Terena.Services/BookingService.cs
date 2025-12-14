@@ -88,9 +88,9 @@ namespace Terena.Services
                 query = ApplySorting(query, search.OrderBy, search.SortDirection);
             }
 
-            if ((search?.Page.HasValue ?? false) && (search?.PageSize.HasValue ?? false))
+            if (search != null && search.Page.HasValue && search.PageSize.HasValue)
             {
-                query = query.Skip((search.Page!.Value - 1) * search.PageSize!.Value).Take(search.PageSize.Value);
+                query = query.Skip((search.Page.Value - 1) * search.PageSize.Value).Take(search.PageSize.Value);
             }
 
             var list = await query.ToListAsync();
@@ -140,7 +140,15 @@ namespace Terena.Services
             entity.DiscountAmount = entity.SubtotalPrice * (entity.DiscountPercentage / 100);
             entity.ServiceFee = 0;
             entity.TotalPrice = entity.SubtotalPrice - entity.DiscountAmount + entity.ServiceFee;
-            entity.CancellationDeadline = request.StartTime.AddHours(-24);
+
+            int cancellationPolicyHours = 24;
+            var venue = Context.Set<Venue>().Find(request.VenueId);
+            if (venue != null && venue.CancellationPolicyHours.HasValue)
+            {
+                cancellationPolicyHours = venue.CancellationPolicyHours.Value;
+            }
+            entity.CancellationDeadline = request.StartTime.AddHours(-cancellationPolicyHours);
+
             entity.PaymentMethod = request.PaymentMethod;
             entity.IsDeleted = false;
         }
@@ -156,7 +164,9 @@ namespace Terena.Services
                     entity.EndTime = request.EndTime.Value;
                     var duration = (entity.EndTime - entity.StartTime).TotalHours;
                     entity.Duration = (decimal)duration;
-                    entity.TotalPrice = entity.Duration * entity.PricePerHour;
+                    entity.SubtotalPrice = entity.Duration * entity.PricePerHour;
+                    entity.DiscountAmount = entity.SubtotalPrice * (entity.DiscountPercentage / 100);
+                    entity.TotalPrice = entity.SubtotalPrice - entity.DiscountAmount + entity.ServiceFee;
                 }
             }
 
@@ -214,8 +224,7 @@ namespace Terena.Services
             booking.ConfirmedAt = DateTime.UtcNow;
 
             await Context.SaveChangesAsync();
-
-            return await Task.FromResult(GetById(bookingId));
+            return GetById(bookingId);
         }
 
         public async Task<BookingDTO> CancelBookingAsync(int bookingId, string cancellationReason)
@@ -236,8 +245,7 @@ namespace Terena.Services
             booking.CancelledAt = DateTime.UtcNow;
 
             await Context.SaveChangesAsync();
-
-            return await Task.FromResult(GetById(bookingId));
+            return GetById(bookingId);
         }
 
         public async Task<BookingDTO> CompleteBookingAsync(int bookingId)
@@ -254,8 +262,7 @@ namespace Terena.Services
             booking.CompletedAt = DateTime.UtcNow;
 
             await Context.SaveChangesAsync();
-
-            return await Task.FromResult(GetById(bookingId));
+            return GetById(bookingId);
         }
 
         public async Task<BookingDTO> ProcessPaymentAsync(int bookingId, string transactionId)
@@ -273,8 +280,7 @@ namespace Terena.Services
             booking.PaidAt = DateTime.UtcNow;
 
             await Context.SaveChangesAsync();
-
-            return await Task.FromResult(GetById(bookingId));
+            return GetById(bookingId);
         }
 
         public async Task<BookingDTO> RefundBookingAsync(int bookingId, decimal? refundAmount = null)
