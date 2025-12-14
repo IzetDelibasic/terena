@@ -38,15 +38,7 @@ namespace Terena.Services
             }
 
             var list = await query.ToListAsync();
-            var result = list.Select(c => new CourtDTO
-            {
-                Id = c.Id,
-                VenueId = c.VenueId,
-                VenueName = c.Venue?.Name,
-                CourtType = c.CourtType,
-                Name = c.Name,
-                IsAvailable = c.IsAvailable
-            }).ToList();
+            var result = list.Adapt<List<CourtDTO>>();
 
             return new Terena.Models.HelperClasses.PagedResult<CourtDTO>
             {
@@ -58,21 +50,7 @@ namespace Terena.Services
         public override CourtDTO GetById(int id)
         {
             var entity = Context.Set<Court>().Include(c => c.Venue).FirstOrDefault(c => c.Id == id);
-            
-            if (entity != null)
-            {
-                return new CourtDTO
-                {
-                    Id = entity.Id,
-                    VenueId = entity.VenueId,
-                    VenueName = entity.Venue?.Name,
-                    CourtType = entity.CourtType,
-                    Name = entity.Name,
-                    IsAvailable = entity.IsAvailable
-                };
-            }
-            
-            return null;
+            return entity?.Adapt<CourtDTO>();
         }
 
         public override IQueryable<Court> AddFilter(CourtSearchObject search, IQueryable<Court> query)
