@@ -10,5 +10,7 @@ namespace Terena.Models.Requests
         [Required]
         public string Name { get; set; }
         public bool IsAvailable { get; set; } = true;
+        [Required]
+        public string MaxCapacity { get; set; }
     }
 }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Terena.Services.Database;
 
@@ -11,9 +12,11 @@ using Terena.Services.Database;
 namespace Terena.Services.Migrations
 {
     [DbContext(typeof(TerenaDbContext))]
-    partial class TerenaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251214210837_AddBookingAndCourtEnhancements")]
+    partial class AddBookingAndCourtEnhancements
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -193,9 +196,8 @@ namespace Terena.Services.Migrations
                     b.Property<bool>("IsAvailable")
                         .HasColumnType("bit");
 
-                    b.Property<string>("MaxCapacity")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("MaxCapacity")
+                        .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -343,9 +345,6 @@ namespace Terena.Services.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("AvailableSlots")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("CancellationPolicyHours")
                         .HasColumnType("int");
 
                     b.Property<string>("ContactEmail")

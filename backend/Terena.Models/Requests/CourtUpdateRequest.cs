@@ -9,5 +9,7 @@ namespace Terena.Models.Requests
         [Required]
         public string Name { get; set; }
         public bool IsAvailable { get; set; }
+        [Required]
+        public string MaxCapacity { get; set; }
     }
 }
