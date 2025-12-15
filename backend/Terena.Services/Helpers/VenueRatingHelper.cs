@@ -9,7 +9,7 @@ namespace Terena.Services.Helpers
         {
             if (venue?.Reviews == null || !venue.Reviews.Any())
                 return (null, 0);
-            return (venue.Reviews.Average(r => r.Rating), venue.Reviews.Count);
+            return ((decimal?)venue.Reviews.Average(r => r.Rating), venue.Reviews.Count);
         }
     }
 }

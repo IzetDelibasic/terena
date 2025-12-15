@@ -61,18 +61,23 @@ namespace Terena.Services
                 .OrderByDescending(f => f.CreatedAt)
                 .ToListAsync();
 
-            return favorites.Select(f => new FavoriteVenueDTO
+            return favorites.Select(f =>
             {
-                Id = f.Id,
-                CreatedAt = f.CreatedAt,
-                UserId = f.UserId,
-                VenueId = f.VenueId,
-                VenueName = f.Venue.Name,
-                VenueLocation = f.Venue.Location,
-                VenueSportType = f.Venue.SportType,
-                VenuePricePerHour = f.Venue.PricePerHour,
-                VenueImageUrl = f.Venue.VenueImageUrl,
-                (VenueAverageRating, VenueTotalReviews) = Helpers.VenueRatingHelper.CalculateVenueRatingAndCount(f.Venue)
+                var (rating, count) = Helpers.VenueRatingHelper.CalculateVenueRatingAndCount(f.Venue);
+                return new FavoriteVenueDTO
+                {
+                    Id = f.Id,
+                    CreatedAt = f.CreatedAt,
+                    UserId = f.UserId,
+                    VenueId = f.VenueId,
+                    VenueName = f.Venue.Name,
+                    VenueLocation = f.Venue.Location,
+                    VenueSportType = f.Venue.SportType,
+                    VenuePricePerHour = f.Venue.PricePerHour,
+                    VenueImageUrl = f.Venue.VenueImageUrl,
+                    VenueAverageRating = rating,
+                    VenueTotalReviews = count
+                };
             }).ToList();
         }
 
@@ -92,6 +97,7 @@ namespace Terena.Services
             if (favorite == null)
                 throw new Exception("Favorite not found!");
 
+            var (rating, count) = Helpers.VenueRatingHelper.CalculateVenueRatingAndCount(favorite.Venue);
             return new FavoriteVenueDTO
             {
                 Id = favorite.Id,
@@ -103,7 +109,8 @@ namespace Terena.Services
                 VenueSportType = favorite.Venue.SportType,
                 VenuePricePerHour = favorite.Venue.PricePerHour,
                 VenueImageUrl = favorite.Venue.VenueImageUrl,
-                (VenueAverageRating, VenueTotalReviews) = Helpers.VenueRatingHelper.CalculateVenueRatingAndCount(favorite.Venue)
+                VenueAverageRating = rating,
+                VenueTotalReviews = count
             };
         }
     }

@@ -9,8 +9,8 @@ namespace Terena.Services.Interfaces
 {
     public interface IUserService : ICRUDService<UserModel, UserSearchObject, UserInsertRequest, UserUpdateRequest>
     {
-        Task<UserModel> BlockUser(int id, string reason);
-        Task<UserModel> UnblockUser(int id);
+        Task<UserModel> BlockUserAsync(int id, string reason);
+        Task<UserModel> UnblockUserAsync(int id);
         Task<UserStatistics> GetUserStatistics(int id);
     }
 }
