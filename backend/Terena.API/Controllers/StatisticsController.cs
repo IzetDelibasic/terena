@@ -96,7 +96,7 @@ namespace Terena.API.Controllers
 
                 weeks.Add(new WeekEarningsDTO
                 {
-                    WeekLabel = $"Week {4 - i}",
+                    WeekLabel = $"{weekStart:yyyy-MM-dd} do {weekEnd.AddDays(-1):yyyy-MM-dd}",
                     Earnings = earnings
                 });
             }
@@ -146,18 +146,39 @@ namespace Terena.API.Controllers
         [HttpGet("top-venues")]
         public async Task<ActionResult<TopVenuesDTO>> GetTopVenues([FromQuery] int count = 10)
         {
-            var topVenues = await _context.Bookings
+            var averageRatingsQuery = _context.Reviews
+                .GroupBy(r => r.VenueId)
+                .Select(g => new
+                {
+                    VenueId = g.Key,
+                    AverageRating = g.Average(r => (decimal?)r.Rating) ?? 0
+                });
+
+            var venueStatsQuery = _context.Bookings
                 .Where(b => b.PaymentStatus == PaymentStatus.Paid)
                 .GroupBy(b => new { b.VenueId, b.Venue.Name })
-                .Select(g => new TopVenueDTO
+                .Select(g => new
                 {
                     VenueId = g.Key.VenueId,
                     VenueName = g.Key.Name,
                     TotalBookings = g.Count(),
-                    TotalEarnings = g.Sum(b => b.TotalPrice),
-                    AverageRating = _context.Reviews
-                        .Where(r => r.VenueId == g.Key.VenueId)
-                        .Average(r => (decimal?)r.Rating) ?? 0
+                    TotalEarnings = g.Sum(b => b.TotalPrice)
+                });
+
+            var topVenues = await venueStatsQuery
+                .GroupJoin(
+                    averageRatingsQuery,
+                    v => v.VenueId,
+                    ar => ar.VenueId,
+                    (v, ar) => new { v, ar = ar.FirstOrDefault() }
+                )
+                .Select(x => new TopVenueDTO
+                {
+                    VenueId = x.v.VenueId,
+                    VenueName = x.v.VenueName,
+                    TotalBookings = x.v.TotalBookings,
+                    TotalEarnings = x.v.TotalEarnings,
+                    AverageRating = x.ar != null ? x.ar.AverageRating : 0
                 })
                 .OrderByDescending(v => v.TotalEarnings)
                 .Take(count)

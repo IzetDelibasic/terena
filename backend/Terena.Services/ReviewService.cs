@@ -53,19 +53,32 @@ namespace Terena.Services
 
         public override void BeforeInsert(ReviewInsertRequest request, Review entity)
         {
+            if (request.BookingId.HasValue)
+            {
+                var booking = Context.Set<Booking>().FirstOrDefault(b => b.Id == request.BookingId.Value);
+                if (booking == null)
+                {
+                    throw new InvalidOperationException("Booking not found.");
+                }
+                if (booking.UserId != request.UserId)
+                {
+                    throw new InvalidOperationException("You can only review your own bookings.");
+                }
+                if (booking.VenueId != request.VenueId)
+                {
+                    throw new InvalidOperationException("Booking does not match the reviewed venue.");
+                }
+            }
             entity.CreatedAt = DateTime.UtcNow;
         }
 
         public async Task<decimal> GetVenueAverageRatingAsync(int venueId)
         {
-            var reviews = await Context.Set<Review>()
+            var query = Context.Set<Review>()
                 .Where(r => r.VenueId == venueId)
-                .ToListAsync();
-
-            if (!reviews.Any())
-                return 0;
-
-            return (decimal)reviews.Average(r => r.Rating);
+                .Select(r => (decimal?)r.Rating);
+            var average = await query.AverageAsync();
+            return average ?? 0;
         }
 
         public async Task<int> GetVenueTotalReviewsAsync(int venueId)

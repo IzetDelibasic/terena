@@ -72,8 +72,7 @@ namespace Terena.Services
                 VenueSportType = f.Venue.SportType,
                 VenuePricePerHour = f.Venue.PricePerHour,
                 VenueImageUrl = f.Venue.VenueImageUrl,
-                VenueAverageRating = f.Venue.Reviews.Any() ? (decimal?)f.Venue.Reviews.Average(r => r.Rating) : null,
-                VenueTotalReviews = f.Venue.Reviews.Count
+                (VenueAverageRating, VenueTotalReviews) = Helpers.VenueRatingHelper.CalculateVenueRatingAndCount(f.Venue)
             }).ToList();
         }
 
@@ -104,8 +103,7 @@ namespace Terena.Services
                 VenueSportType = favorite.Venue.SportType,
                 VenuePricePerHour = favorite.Venue.PricePerHour,
                 VenueImageUrl = favorite.Venue.VenueImageUrl,
-                VenueAverageRating = favorite.Venue.Reviews.Any() ? (decimal?)favorite.Venue.Reviews.Average(r => r.Rating) : null,
-                VenueTotalReviews = favorite.Venue.Reviews.Count
+                (VenueAverageRating, VenueTotalReviews) = Helpers.VenueRatingHelper.CalculateVenueRatingAndCount(favorite.Venue)
             };
         }
     }

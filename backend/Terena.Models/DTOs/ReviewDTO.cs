@@ -9,9 +9,9 @@ namespace Terena.Models.DTOs
         public string? Comment { get; set; }
         public DateTime CreatedAt { get; set; }
         public int UserId { get; set; }
-        public string UserUsername { get; set; }
+        public string? UserUsername { get; set; }
         public int VenueId { get; set; }
-        public string VenueName { get; set; }
+        public string? VenueName { get; set; }
         public int? BookingId { get; set; }
     }
 }
