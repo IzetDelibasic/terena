@@ -22,14 +22,14 @@ namespace Terena.API.Controllers
         [HttpPost("{id}/block")]
         public async Task<ActionResult<UserModel>> BlockUser(int id, [FromBody] BlockUserRequest request)
         {
-            var result = await _userService.BlockUser(id, request.Reason);
+            var result = await _userService.BlockUserAsync(id, request.Reason);
             return Ok(result);
         }
 
         [HttpPost("{id}/unblock")]
         public async Task<ActionResult<UserModel>> UnblockUser(int id)
         {
-            var result = await _userService.UnblockUser(id);
+            var result = await _userService.UnblockUserAsync(id);
             return Ok(result);
         }
 

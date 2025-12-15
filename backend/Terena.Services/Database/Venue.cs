@@ -22,8 +22,14 @@ namespace Terena.Services.Database
         public CancellationPolicy? CancellationPolicy { get; set; }
         public Discount? Discount { get; set; }
         public int? CancellationPolicyHours { get; set; }
-        public ICollection<Court> Courts { get; set; }
-        public ICollection<Booking> Bookings { get; set; }
+        public decimal? DiscountPercentage { get; set; }
+        public int? DiscountThreshold { get; set; }
+        public decimal? CancellationFeePercentage { get; set; }
+        public int? RefundProcessingDays { get; set; }
+        public ICollection<Court>? Courts { get; set; }
+        public ICollection<Booking>? Bookings { get; set; }
+        public ICollection<Review>? Reviews { get; set; }
+        public ICollection<UserFavoriteVenue>? FavoritedBy { get; set; }
     }
 
     public class VenueAmenity

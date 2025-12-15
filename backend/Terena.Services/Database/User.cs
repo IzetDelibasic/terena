@@ -19,10 +19,10 @@ namespace Terena.Services.Database
         public string? BlockReason { get; set; }
         public DateTime? BlockedAt { get; set; }
         public UserRole Role { get; set; }
-        
         public bool IsDeleted { get; set; }
         public DateTime? DeleteTime { get; set; }
-
-        public ICollection<Booking> Bookings { get; set; }
+        public ICollection<Booking>? Bookings { get; set; }
+        public ICollection<Review>? Reviews { get; set; }
+        public ICollection<UserFavoriteVenue>? FavoriteVenues { get; set; }
     }
 }
