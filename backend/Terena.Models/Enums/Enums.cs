@@ -15,9 +15,11 @@ namespace Terena.Models.Enums
     public enum BookingStatus
     {
         Pending,
+        Accepted,
         Confirmed,
         Completed,
-        Cancelled
+        Cancelled,
+        Expired
     }
 
     public enum PaymentStatus

@@ -14,6 +14,8 @@ namespace Terena.Services.Database
         public DbSet<User> Users { get; set; }
         public DbSet<Court> Courts { get; set; }
         public DbSet<Booking> Bookings { get; set; }
+        public DbSet<Review> Reviews { get; set; }
+        public DbSet<UserFavoriteVenue> UserFavoriteVenues { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -70,6 +72,41 @@ namespace Terena.Services.Database
 
             modelBuilder.Entity<Booking>()
                 .HasIndex(b => b.BookingNumber)
+                .IsUnique();
+
+            modelBuilder.Entity<Review>()
+                .HasOne(r => r.User)
+                .WithMany(u => u.Reviews)
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Review>()
+                .HasOne(r => r.Venue)
+                .WithMany(v => v.Reviews)
+                .HasForeignKey(r => r.VenueId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Review>()
+                .HasOne(r => r.Booking)
+                .WithMany(b => b.Reviews)
+                .HasForeignKey(r => r.BookingId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<UserFavoriteVenue>()
+                .HasOne(ufv => ufv.User)
+                .WithMany(u => u.FavoriteVenues)
+                .HasForeignKey(ufv => ufv.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<UserFavoriteVenue>()
+                .HasOne(ufv => ufv.Venue)
+                .WithMany(v => v.FavoritedBy)
+                .HasForeignKey(ufv => ufv.VenueId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<UserFavoriteVenue>()
+                .HasIndex(ufv => new { ufv.UserId, ufv.VenueId })
                 .IsUnique();
         }
     }

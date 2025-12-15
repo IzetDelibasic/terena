@@ -151,5 +151,43 @@ namespace Terena.Services
                 FavoriteVenueName = favoriteVenue?.FirstOrDefault()?.Venue?.Name
             };
         }
+
+        public async Task<UserModel> BlockUserAsync(int userId, string blockReason)
+        {
+            var user = await Context.Set<User>().FindAsync(userId);
+            
+            if (user == null)
+                throw new Exception("User not found!");
+
+            if (user.Status == UserStatus.Blocked)
+                throw new Exception("User is already blocked!");
+
+            user.Status = UserStatus.Blocked;
+            user.BlockReason = blockReason;
+            user.BlockedAt = DateTime.UtcNow;
+
+            await Context.SaveChangesAsync();
+
+            return GetById(userId);
+        }
+
+        public async Task<UserModel> UnblockUserAsync(int userId)
+        {
+            var user = await Context.Set<User>().FindAsync(userId);
+            
+            if (user == null)
+                throw new Exception("User not found!");
+
+            if (user.Status != UserStatus.Blocked)
+                throw new Exception("User is not blocked!");
+
+            user.Status = UserStatus.Active;
+            user.BlockReason = null;
+            user.BlockedAt = null;
+
+            await Context.SaveChangesAsync();
+
+            return GetById(userId);
+        }
     }
 }
