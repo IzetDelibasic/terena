@@ -6,6 +6,7 @@ namespace Terena.API.Filters;
 
 public class ExceptionFilter : ExceptionFilterAttribute
 {
+
     public override void OnException(ExceptionContext context)
     {
         if (context.Exception is UserException)
@@ -15,7 +16,11 @@ public class ExceptionFilter : ExceptionFilterAttribute
         }
         else
         {
-            context.ModelState.AddModelError("generalException", "An error occurred!");
+            var env = context.HttpContext.RequestServices.GetService(typeof(IWebHostEnvironment)) as IWebHostEnvironment;
+            var errorMessage = env != null && env.IsDevelopment()
+                ? $"{context.Exception.Message} | {context.Exception.StackTrace}"
+                : "An error occurred!";
+            context.ModelState.AddModelError("generalException", errorMessage);
             context.HttpContext.Response.StatusCode = 500;
         }
 

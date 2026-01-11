@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Mapster;
 using Terena.Models.DTOs;
 using Terena.Models.Requests;
 using Terena.Models.SearchObjects;
@@ -12,6 +13,11 @@ public class VenueService : BaseCRUDService<VenueDTO, VenueSearchObject, Venue, 
 {
     public VenueService(TerenaDbContext context) : base(context)
     {
+        TypeAdapterConfig<VenueUpsertRequest, Venue>.NewConfig()
+            .Ignore(dest => dest.Amenities)
+            .Ignore(dest => dest.OperatingHours)
+            .Ignore(dest => dest.CancellationPolicy)
+            .Ignore(dest => dest.Discount);
     }
 
     public override IQueryable<Venue> AddFilter(VenueSearchObject search, IQueryable<Venue> query)
@@ -46,56 +52,21 @@ public class VenueService : BaseCRUDService<VenueDTO, VenueSearchObject, Venue, 
 
     public override void BeforeInsert(VenueUpsertRequest request, Venue entity)
     {
-        entity.Amenities = new List<VenueAmenity>();
-        if (request.Amenities != null)
-            entity.Amenities.AddRange(request.Amenities.Select(a => new VenueAmenity { Name = a, IsAvailable = true }));
-
-        entity.OperatingHours = new List<OperatingHour>();
-        if (request.OperatingHours != null)
-            entity.OperatingHours.AddRange(request.OperatingHours.Select(o => new OperatingHour { Day = o.Day, StartTime = o.StartTime, EndTime = o.EndTime }));
-
-        entity.CancellationPolicy = request.CancellationPolicy != null ? new CancellationPolicy { FreeUntil = request.CancellationPolicy.FreeUntil, Fee = request.CancellationPolicy.Fee } : null;
-        entity.Discount = request.Discount != null ? new Discount { Percentage = request.Discount.Percentage, ForBookings = request.Discount.ForBookings } : null;
+        entity.HasParking = request.HasParking;
+        entity.HasShowers = request.HasShowers;
+        entity.HasLighting = request.HasLighting;
+        entity.HasChangingRooms = request.HasChangingRooms;
+        entity.HasEquipmentRental = request.HasEquipmentRental;
+        entity.HasCafeBar = request.HasCafeBar;
     }
 
     public override void BeforeUpdate(VenueUpsertRequest request, Venue entity)
     {
-        entity.Amenities = new List<VenueAmenity>();
-        if (request.Amenities != null)
-        {
-            entity.Amenities.AddRange(request.Amenities.Select(a => new VenueAmenity { Name = a, IsAvailable = true }));
-        }
-
-        entity.OperatingHours = new List<OperatingHour>();
-        if (request.OperatingHours != null)
-        {
-            entity.OperatingHours.AddRange(request.OperatingHours.Select(o => new OperatingHour { Day = o.Day, StartTime = o.StartTime, EndTime = o.EndTime }));
-        }
-
-        if (request.CancellationPolicy != null)
-        {
-            entity.CancellationPolicy = new CancellationPolicy
-            {
-                FreeUntil = request.CancellationPolicy.FreeUntil,
-                Fee = request.CancellationPolicy.Fee
-            };
-        }
-        else
-        {
-            entity.CancellationPolicy = null;
-        }
-
-        if (request.Discount != null)
-        {
-            entity.Discount = new Discount
-            {
-                Percentage = request.Discount.Percentage,
-                ForBookings = request.Discount.ForBookings
-            };
-        }
-        else
-        {
-            entity.Discount = null;
-        }
+        entity.HasParking = request.HasParking;
+        entity.HasShowers = request.HasShowers;
+        entity.HasLighting = request.HasLighting;
+        entity.HasChangingRooms = request.HasChangingRooms;
+        entity.HasEquipmentRental = request.HasEquipmentRental;
+        entity.HasCafeBar = request.HasCafeBar;
     }
 }
