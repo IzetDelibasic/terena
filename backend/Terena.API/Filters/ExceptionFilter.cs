@@ -6,12 +6,6 @@ namespace Terena.API.Filters;
 
 public class ExceptionFilter : ExceptionFilterAttribute
 {
-    private readonly IWebHostEnvironment _environment;
-
-    public ExceptionFilter(IWebHostEnvironment environment)
-    {
-        _environment = environment;
-    }
 
     public override void OnException(ExceptionContext context)
     {
@@ -22,10 +16,10 @@ public class ExceptionFilter : ExceptionFilterAttribute
         }
         else
         {
-            var errorMessage = _environment.IsDevelopment() 
-                ? $"{context.Exception.Message} | {context.Exception.StackTrace}" 
+            var env = context.HttpContext.RequestServices.GetService(typeof(IWebHostEnvironment)) as IWebHostEnvironment;
+            var errorMessage = env != null && env.IsDevelopment()
+                ? $"{context.Exception.Message} | {context.Exception.StackTrace}"
                 : "An error occurred!";
-            
             context.ModelState.AddModelError("generalException", errorMessage);
             context.HttpContext.Response.StatusCode = 500;
         }

@@ -52,35 +52,21 @@ public class VenueService : BaseCRUDService<VenueDTO, VenueSearchObject, Venue, 
 
     public override void BeforeInsert(VenueUpsertRequest request, Venue entity)
     {
-        // Map boolean amenity fields directly
         entity.HasParking = request.HasParking;
         entity.HasShowers = request.HasShowers;
         entity.HasLighting = request.HasLighting;
         entity.HasChangingRooms = request.HasChangingRooms;
         entity.HasEquipmentRental = request.HasEquipmentRental;
         entity.HasCafeBar = request.HasCafeBar;
-
-        // Don't create complex objects, they cause issues
-        entity.Amenities = null;
-        entity.OperatingHours = null;
-        entity.CancellationPolicy = null;
-        entity.Discount = null;
     }
 
     public override void BeforeUpdate(VenueUpsertRequest request, Venue entity)
     {
-        // Map boolean amenity fields directly
         entity.HasParking = request.HasParking;
         entity.HasShowers = request.HasShowers;
         entity.HasLighting = request.HasLighting;
         entity.HasChangingRooms = request.HasChangingRooms;
         entity.HasEquipmentRental = request.HasEquipmentRental;
         entity.HasCafeBar = request.HasCafeBar;
-
-        // Don't update complex objects
-        entity.Amenities = null;
-        entity.OperatingHours = null;
-        entity.CancellationPolicy = null;
-        entity.Discount = null;
     }
 }
