@@ -89,4 +89,10 @@ class UserProvider extends BaseProvider<User> {
       }
     }
   }
+
+  void logout() {
+    AuthProvider.username = null;
+    AuthProvider.password = null;
+    AuthProvider.userId = null;
+  }
 }

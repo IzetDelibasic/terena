@@ -43,7 +43,7 @@ class _BookingListScreenState extends State<BookingListScreen> {
       FullScreenLoader(
         isLoading: isLoading,
         isList: true,
-        title: "Bookings",
+        title: "",
         actions: <Widget>[Container()],
         child: Column(children: [_buildSearchForm(), _buildResultView()]),
       ),
@@ -75,8 +75,10 @@ class _BookingListScreenState extends State<BookingListScreen> {
               ),
               const SizedBox(width: 10),
               ElevatedButton(
-                style: ButtonStyle(
-                  minimumSize: MaterialStateProperty.all(const Size(120, 50)),
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(120, 50),
+                  backgroundColor: const Color.fromRGBO(56, 142, 60, 1),
+                  foregroundColor: Colors.white,
                 ),
                 onPressed: () {
                   dataSource.filterServerSide(bookingNumberController.text);
@@ -85,8 +87,10 @@ class _BookingListScreenState extends State<BookingListScreen> {
               ),
               const SizedBox(width: 10),
               ElevatedButton(
-                style: ButtonStyle(
-                  minimumSize: MaterialStateProperty.all(const Size(120, 50)),
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(120, 50),
+                  backgroundColor: Colors.grey.shade600,
+                  foregroundColor: Colors.white,
                 ),
                 onPressed: () {
                   bookingNumberController.clear();

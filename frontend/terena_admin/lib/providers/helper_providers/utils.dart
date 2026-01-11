@@ -7,7 +7,14 @@ buildResultView(Widget child) {
     child: Container(
       margin: const EdgeInsets.all(20),
       padding: const EdgeInsets.all(10),
-      color: const Color.fromRGBO(235, 241, 224, 1),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: const Color.fromRGBO(224, 224, 224, 1),
+          width: 1,
+        ),
+      ),
       child: child,
     ),
   );

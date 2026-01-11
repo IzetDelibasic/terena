@@ -29,10 +29,10 @@ class User {
     email = json['email'];
     firstName = json['firstName'];
     lastName = json['lastName'];
-    phoneNumber = json['phoneNumber'];
+    phoneNumber = json['phone'];
     createdAt =
         json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null;
-    isBlocked = json['isBlocked'];
+    isBlocked = json['status'] == 'Blocked' || json['status'] == 1;
     blockReason = json['blockReason'];
     blockedAt =
         json['blockedAt'] != null ? DateTime.parse(json['blockedAt']) : null;

@@ -45,7 +45,7 @@ class _UserListScreenState extends State<UserListScreen> {
       FullScreenLoader(
         isLoading: isLoading,
         isList: true,
-        title: "Users",
+        title: "",
         actions: <Widget>[Container()],
         child: Column(children: [_buildSearchForm(), _buildResultView()]),
       ),
@@ -58,8 +58,12 @@ class _UserListScreenState extends State<UserListScreen> {
       margin: const EdgeInsets.all(20),
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: const Color.fromRGBO(235, 241, 224, 1),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: const Color.fromRGBO(224, 224, 224, 1),
+          width: 1,
+        ),
       ),
       child: Column(
         children: [
@@ -88,8 +92,10 @@ class _UserListScreenState extends State<UserListScreen> {
               ),
               const SizedBox(width: 10),
               ElevatedButton(
-                style: ButtonStyle(
-                  minimumSize: MaterialStateProperty.all(const Size(120, 50)),
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(120, 50),
+                  backgroundColor: const Color.fromRGBO(56, 142, 60, 1),
+                  foregroundColor: Colors.white,
                 ),
                 onPressed: () {
                   dataSource.filterServerSide(
@@ -101,8 +107,10 @@ class _UserListScreenState extends State<UserListScreen> {
               ),
               const SizedBox(width: 10),
               ElevatedButton(
-                style: ButtonStyle(
-                  minimumSize: MaterialStateProperty.all(const Size(120, 50)),
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(120, 50),
+                  backgroundColor: Colors.grey.shade600,
+                  foregroundColor: Colors.white,
                 ),
                 onPressed: () {
                   usernameController.clear();
@@ -133,12 +141,6 @@ class _UserListScreenState extends State<UserListScreen> {
           DataColumn(
             label: Text(
               "Email",
-              style: TextStyle(color: Colors.black, fontSize: 18),
-            ),
-          ),
-          DataColumn(
-            label: Text(
-              "Full Name",
               style: TextStyle(color: Colors.black, fontSize: 18),
             ),
           ),
@@ -192,8 +194,7 @@ class UserDataSource extends AdvancedDataTableSource<User> {
       cells: [
         DataCell(Text(item?.username ?? "")),
         DataCell(Text(item?.email ?? "")),
-        DataCell(Text("${item?.firstName ?? ""} ${item?.lastName ?? ""}")),
-        DataCell(Text(item?.phoneNumber ?? "")),
+        DataCell(Text(item?.phoneNumber?.toString() ?? "")),
         DataCell(
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -232,36 +233,58 @@ class UserDataSource extends AdvancedDataTableSource<User> {
 
   Future<void> _blockUser(int userId) async {
     final TextEditingController reasonController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
 
     bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text("Block User"),
-          content: TextField(
-            controller: reasonController,
-            decoration: const InputDecoration(
-              labelText: "Block Reason",
-              hintText: "Enter reason...",
+          content: SizedBox(
+            width: 500,
+            child: Form(
+              key: formKey,
+              child: TextFormField(
+                controller: reasonController,
+                decoration: const InputDecoration(
+                  labelText: "Block Reason",
+                  hintText: "Enter reason...",
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 5,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return "Block reason is required";
+                  }
+                  return null;
+                },
+              ),
             ),
-            maxLines: 3,
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
               child: const Text("Cancel"),
             ),
+            const Spacer(),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text("Block"),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                minimumSize: const Size(120, 45),
+              ),
+              onPressed: () {
+                if (formKey.currentState!.validate()) {
+                  Navigator.of(context).pop(true);
+                }
+              },
+              child: const Text("Block", style: TextStyle(color: Colors.white)),
             ),
           ],
         );
       },
     );
 
-    if (confirmed == true && reasonController.text.isNotEmpty) {
+    if (confirmed == true && reasonController.text.trim().isNotEmpty) {
       try {
         await provider.blockUser(userId, reasonController.text);
         if (context.mounted) {
