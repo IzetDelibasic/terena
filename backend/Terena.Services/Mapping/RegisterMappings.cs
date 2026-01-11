@@ -35,7 +35,42 @@ namespace Terena.Services.Mapping
                 .Map(dest => dest.AverageRating, src => src.Reviews != null && src.Reviews.Any() 
                     ? (decimal)src.Reviews.Average(r => r.Rating) 
                     : 0m)
-                .Map(dest => dest.TotalReviews, src => src.Reviews != null ? src.Reviews.Count : 0);
+                .Map(dest => dest.TotalReviews, src => src.Reviews != null ? src.Reviews.Count : 0)
+                .Map(dest => dest.Amenities, src => GetAmenitiesFromBooleans(src))
+                .Map(dest => dest.OperatingHours, src => src.OperatingHours != null 
+                    ? src.OperatingHours.Select(oh => new OperatingHourDTO 
+                    { 
+                        Day = oh.Day, 
+                        StartTime = oh.StartTime, 
+                        EndTime = oh.EndTime 
+                    }).ToList() 
+                    : new List<OperatingHourDTO>())
+                .Map(dest => dest.CancellationPolicy, src => src.CancellationPolicy != null 
+                    ? new CancellationPolicyDTO 
+                    { 
+                        FreeUntil = src.CancellationPolicy.FreeUntil, 
+                        Fee = src.CancellationPolicy.Fee 
+                    } 
+                    : null)
+                .Map(dest => dest.Discount, src => src.Discount != null 
+                    ? new DiscountDTO 
+                    { 
+                        Percentage = src.Discount.Percentage, 
+                        ForBookings = src.Discount.ForBookings 
+                    } 
+                    : null);
+        }
+
+        private static List<string> GetAmenitiesFromBooleans(Venue venue)
+        {
+            var amenities = new List<string>();
+            if (venue.HasParking) amenities.Add("Parking");
+            if (venue.HasShowers) amenities.Add("Showers");
+            if (venue.HasLighting) amenities.Add("Lighting");
+            if (venue.HasChangingRooms) amenities.Add("Changing Rooms");
+            if (venue.HasEquipmentRental) amenities.Add("Equipment Rental");
+            if (venue.HasCafeBar) amenities.Add("Cafe/Bar");
+            return amenities;
         }
     }
 }

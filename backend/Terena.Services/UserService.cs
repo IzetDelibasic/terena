@@ -152,6 +152,26 @@ namespace Terena.Services
             };
         }
 
+        public async Task<UserModel> LoginAsync(string username, string password)
+        {
+            var user = await Context.Set<User>()
+                .FirstOrDefaultAsync(u => u.Username == username || u.Email == username);
+
+            if (user == null)
+                throw new Exception("Invalid username or password!");
+
+            if (user.Status == UserStatus.Blocked)
+                throw new Exception("Your account has been blocked. Reason: " + user.BlockReason);
+
+            if (!BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+                throw new Exception("Invalid username or password!");
+
+            user.LastLogin = DateTime.UtcNow;
+            await Context.SaveChangesAsync();
+
+            return user.Adapt<UserModel>();
+        }
+
         public async Task<UserModel> BlockUserAsync(int userId, string blockReason)
         {
             var user = await Context.Set<User>().FindAsync(userId);

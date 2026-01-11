@@ -17,6 +17,14 @@ namespace Terena.Services.Database
         public string ContactPhone { get; set; }
         public string ContactEmail { get; set; }
         public string VenueImageUrl { get; set; }
+        
+        public bool HasParking { get; set; }
+        public bool HasShowers { get; set; }
+        public bool HasLighting { get; set; }
+        public bool HasChangingRooms { get; set; }
+        public bool HasEquipmentRental { get; set; }
+        public bool HasCafeBar { get; set; }
+        
         public List<VenueAmenity> Amenities { get; set; }
         public List<OperatingHour> OperatingHours { get; set; }
         public CancellationPolicy? CancellationPolicy { get; set; }

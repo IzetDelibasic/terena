@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Threading.Tasks;
 using Terena.API.Controllers.BaseControllers;
 using Terena.Models.DTOs;
+using Terena.Models.Enums;
 using Terena.Models.Requests;
 using Terena.Models.SearchObjects;
 using Terena.Services.Interfaces;
@@ -17,6 +19,35 @@ namespace Terena.API.Controllers
         public UserController(IUserService service) : base(service)
         {
             _userService = service;
+        }
+
+        [HttpPost("login")]
+        public async Task<ActionResult<UserModel>> Login([FromBody] LoginRequest request)
+        {
+            try
+            {
+                var result = await _userService.LoginAsync(request.Username, request.Password);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("register")]
+        public ActionResult<UserModel> Register([FromBody] UserInsertRequest request)
+        {
+            try
+            {
+                request.Role = UserRole.Customer; 
+                var result = _userService.Insert(request);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpPost("{id}/block")]
