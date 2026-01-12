@@ -19,6 +19,29 @@ namespace Terena.Services
         {
         }
 
+        public override BookingDTO Insert(BookingInsertRequest request)
+        {
+            var entity = new Booking();
+            
+            BeforeInsert(request, entity);
+
+            Context.Add(entity);
+            Context.SaveChanges();
+            
+            AfterInsert(request, entity);
+
+            var savedEntity = Context.Set<Booking>()
+                .Include(b => b.User)
+                .Include(b => b.Venue)
+                .Include(b => b.Court)
+                .FirstOrDefault(b => b.Id == entity.Id);
+
+            if (savedEntity == null)
+                throw new Exception("Failed to create booking");
+
+            return savedEntity.Adapt<BookingDTO>();
+        }
+
         public override IQueryable<Booking> AddFilter(BookingSearchObject search, IQueryable<Booking> query)
         {
             var filteredQuery = base.AddFilter(search, query);
@@ -119,13 +142,28 @@ namespace Terena.Services
 
         public override void BeforeInsert(BookingInsertRequest request, Booking entity)
         {
+            var requestStartUtc = request.StartTime.ToUniversalTime();
+            var requestEndUtc = request.EndTime.ToUniversalTime();
+            
+            var hasConflict = Context.Set<Booking>()
+                .Any(b => b.VenueId == request.VenueId
+                    && (request.CourtId == null || b.CourtId == request.CourtId)
+                    && b.Status != BookingStatus.Cancelled
+                    && b.StartTime < requestEndUtc
+                    && b.EndTime > requestStartUtc);
+
+            if (hasConflict)
+            {
+                throw new Exception("This time slot is already booked!");
+            }
+
             entity.BookingNumber = GenerateBookingNumber();
             entity.CreatedAt = DateTime.UtcNow;
             entity.Status = BookingStatus.Pending;
             entity.PaymentStatus = PaymentStatus.Pending;
-            entity.BookingDate = request.BookingDate;
-            entity.StartTime = request.StartTime;
-            entity.EndTime = request.EndTime;
+            entity.BookingDate = request.BookingDate.ToUniversalTime();
+            entity.StartTime = requestStartUtc;
+            entity.EndTime = requestEndUtc;
             entity.PricePerHour = request.PricePerHour;
             entity.UserId = request.UserId;
             entity.VenueId = request.VenueId;
@@ -311,6 +349,41 @@ namespace Terena.Services
         private string GenerateBookingNumber()
         {
             return $"BK{DateTime.UtcNow:yyyyMMddHHmmss}{new Random().Next(1000, 9999)}";
+        }
+
+        public async Task<List<string>> GetAvailableTimeSlotsAsync(int venueId, DateTime date, int? courtId = null)
+        {
+            var startHour = 8; 
+            var endHour = 22;  
+            
+            var availableSlots = new List<string>();
+            
+            var dateUtc = date.ToUniversalTime().Date;
+            
+            var bookings = await Context.Set<Booking>()
+                .Where(b => b.VenueId == venueId
+                    && (courtId == null || b.CourtId == courtId)
+                    && b.StartTime.Date == dateUtc
+                    && b.Status != BookingStatus.Cancelled)
+                .ToListAsync();
+            
+            for (int hour = startHour; hour < endHour; hour++)
+            {
+                var slotTime = new DateTime(dateUtc.Year, dateUtc.Month, dateUtc.Day, hour, 0, 0, DateTimeKind.Utc);
+                var slotEndTime = slotTime.AddHours(1);
+                
+                bool isAvailable = !bookings.Any(b => 
+                    (slotTime >= b.StartTime && slotTime < b.EndTime) ||
+                    (slotEndTime > b.StartTime && slotEndTime <= b.EndTime) ||
+                    (slotTime <= b.StartTime && slotEndTime >= b.EndTime));
+                
+                if (isAvailable)
+                {
+                    availableSlots.Add($"{hour:D2}:00");
+                }
+            }
+            
+            return availableSlots;
         }
     }
 }

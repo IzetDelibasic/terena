@@ -58,6 +58,8 @@ namespace Terena.Services
                 .Where(f => f.UserId == userId)
                 .Include(f => f.Venue)
                 .ThenInclude(v => v.Reviews)
+                .Include(f => f.Venue.Amenities)
+                .Include(f => f.Venue.OperatingHours)
                 .OrderByDescending(f => f.CreatedAt)
                 .ToListAsync();
 
@@ -76,7 +78,32 @@ namespace Terena.Services
                     VenuePricePerHour = f.Venue.PricePerHour,
                     VenueImageUrl = f.Venue.VenueImageUrl,
                     VenueAverageRating = rating,
-                    VenueTotalReviews = count
+                    VenueTotalReviews = count,
+                    Venue = new VenueDTO
+                    {
+                        Id = f.Venue.Id,
+                        Name = f.Venue.Name,
+                        Location = f.Venue.Location,
+                        SportType = f.Venue.SportType,
+                        PricePerHour = f.Venue.PricePerHour,
+                        VenueImageUrl = f.Venue.VenueImageUrl,
+                        AverageRating = rating ?? 0,
+                        TotalReviews = count,
+                        Description = f.Venue.Description,
+                        Address = f.Venue.Address,
+                        SurfaceType = f.Venue.SurfaceType,
+                        ContactPhone = f.Venue.ContactPhone,
+                        ContactEmail = f.Venue.ContactEmail,
+                        Amenities = f.Venue.Amenities?.Select(a => a.Name).ToList() ?? new List<string>(),
+                        OperatingHours = f.Venue.OperatingHours?.Select(oh => new OperatingHourDTO
+                        {
+                            Day = oh.Day,
+                            StartTime = oh.StartTime,
+                            EndTime = oh.EndTime
+                        }).ToList() ?? new List<OperatingHourDTO>(),
+                        CancellationPolicy = new CancellationPolicyDTO(),
+                        Discount = new DiscountDTO()
+                    }
                 };
             }).ToList();
         }

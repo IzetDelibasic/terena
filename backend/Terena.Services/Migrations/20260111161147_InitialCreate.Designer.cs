@@ -12,8 +12,8 @@ using Terena.Services.Database;
 namespace Terena.Services.Migrations
 {
     [DbContext(typeof(TerenaDbContext))]
-    [Migration("20251214222616_ChangeCourtMaxCapacityToString")]
-    partial class ChangeCourtMaxCapacityToString
+    [Migration("20260111161147_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -269,6 +269,43 @@ namespace Terena.Services.Migrations
                     b.ToTable("OperatingHours");
                 });
 
+            modelBuilder.Entity("Terena.Services.Database.Review", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("BookingId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Comment")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("VenueId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookingId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("VenueId");
+
+                    b.ToTable("Reviews");
+                });
+
             modelBuilder.Entity("Terena.Services.Database.User", b =>
                 {
                     b.Property<int>("Id")
@@ -333,6 +370,33 @@ namespace Terena.Services.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("Terena.Services.Database.UserFavoriteVenue", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("VenueId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VenueId");
+
+                    b.HasIndex("UserId", "VenueId")
+                        .IsUnique();
+
+                    b.ToTable("UserFavoriteVenues");
+                });
+
             modelBuilder.Entity("Terena.Services.Database.Venue", b =>
                 {
                     b.Property<int>("Id")
@@ -347,6 +411,9 @@ namespace Terena.Services.Migrations
 
                     b.Property<int>("AvailableSlots")
                         .HasColumnType("int");
+
+                    b.Property<decimal?>("CancellationFeePercentage")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int?>("CancellationPolicyHours")
                         .HasColumnType("int");
@@ -363,6 +430,30 @@ namespace Terena.Services.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<decimal?>("DiscountPercentage")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("DiscountThreshold")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("HasCafeBar")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("HasChangingRooms")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("HasEquipmentRental")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("HasLighting")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("HasParking")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("HasShowers")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Location")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -373,6 +464,9 @@ namespace Terena.Services.Migrations
 
                     b.Property<decimal>("PricePerHour")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("RefundProcessingDays")
+                        .HasColumnType("int");
 
                     b.Property<string>("SportType")
                         .IsRequired()
@@ -481,6 +575,51 @@ namespace Terena.Services.Migrations
                     b.Navigation("Venue");
                 });
 
+            modelBuilder.Entity("Terena.Services.Database.Review", b =>
+                {
+                    b.HasOne("Terena.Services.Database.Booking", "Booking")
+                        .WithMany("Reviews")
+                        .HasForeignKey("BookingId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Terena.Services.Database.User", "User")
+                        .WithMany("Reviews")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Terena.Services.Database.Venue", "Venue")
+                        .WithMany("Reviews")
+                        .HasForeignKey("VenueId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Booking");
+
+                    b.Navigation("User");
+
+                    b.Navigation("Venue");
+                });
+
+            modelBuilder.Entity("Terena.Services.Database.UserFavoriteVenue", b =>
+                {
+                    b.HasOne("Terena.Services.Database.User", "User")
+                        .WithMany("FavoriteVenues")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Terena.Services.Database.Venue", "Venue")
+                        .WithMany("FavoritedBy")
+                        .HasForeignKey("VenueId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+
+                    b.Navigation("Venue");
+                });
+
             modelBuilder.Entity("Terena.Services.Database.VenueAmenity", b =>
                 {
                     b.HasOne("Terena.Services.Database.Venue", null)
@@ -488,6 +627,11 @@ namespace Terena.Services.Migrations
                         .HasForeignKey("VenueId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Terena.Services.Database.Booking", b =>
+                {
+                    b.Navigation("Reviews");
                 });
 
             modelBuilder.Entity("Terena.Services.Database.Court", b =>
@@ -498,6 +642,10 @@ namespace Terena.Services.Migrations
             modelBuilder.Entity("Terena.Services.Database.User", b =>
                 {
                     b.Navigation("Bookings");
+
+                    b.Navigation("FavoriteVenues");
+
+                    b.Navigation("Reviews");
                 });
 
             modelBuilder.Entity("Terena.Services.Database.Venue", b =>
@@ -512,7 +660,11 @@ namespace Terena.Services.Migrations
 
                     b.Navigation("Discount");
 
+                    b.Navigation("FavoritedBy");
+
                     b.Navigation("OperatingHours");
+
+                    b.Navigation("Reviews");
                 });
 #pragma warning restore 612, 618
         }

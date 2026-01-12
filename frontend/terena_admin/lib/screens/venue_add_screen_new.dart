@@ -692,6 +692,53 @@ class _VenueAddScreenNewState extends State<VenueAddScreenNew> {
         ),
         const SizedBox(height: 30),
         const Text(
+          "Discount Policy",
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 15),
+        Row(
+          children: [
+            Expanded(
+              child: FormBuilderTextField(
+                name: 'discountPercentage',
+                decoration: InputDecoration(
+                  labelText: 'Discount Percentage (%)',
+                  hintText: 'e.g., 10',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[50],
+                  prefixIcon: const Icon(Icons.discount),
+                  helperText: 'Discount applied for longer bookings',
+                ),
+                keyboardType: TextInputType.number,
+                initialValue: '0',
+              ),
+            ),
+            const SizedBox(width: 20),
+            Expanded(
+              child: FormBuilderTextField(
+                name: 'discountForBookings',
+                decoration: InputDecoration(
+                  labelText: 'Minimum Hours for Discount',
+                  hintText: 'e.g., 3',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[50],
+                  prefixIcon: const Icon(Icons.schedule),
+                  helperText: 'Hours needed to get discount',
+                ),
+                keyboardType: TextInputType.number,
+                initialValue: '0',
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 30),
+        const Text(
           "Contact Information",
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
         ),
@@ -900,17 +947,44 @@ class _VenueAddScreenNewState extends State<VenueAddScreenNew> {
               int.tryParse(values['availableSlots']?.toString() ?? '0') ?? 0,
           'contactPhone': values['contactPhone'],
           'contactEmail': values['contactEmail'],
-          'amenities': selectedAmenities,
-          'cancellationPolicyHours':
-              int.tryParse(
-                values['cancellationPolicyHours']?.toString() ?? '0',
-              ) ??
-              0,
-          'cancellationFeePercentage':
-              double.tryParse(
-                values['cancellationFeePercentage']?.toString() ?? '0',
-              ) ??
-              0.0,
+          'hasParking': selectedAmenities.contains('Parking'),
+          'hasShowers': selectedAmenities.contains('Showers'),
+          'hasLighting': selectedAmenities.contains('Lighting'),
+          'hasChangingRooms': selectedAmenities.contains('Changing Rooms'),
+          'hasEquipmentRental': selectedAmenities.contains('Equipment Rental'),
+          'hasCafeBar': selectedAmenities.contains('Cafe/Bar'),
+          'discount': {
+            'percentage':
+                double.tryParse(
+                  values['discountPercentage']?.toString() ?? '0',
+                ) ??
+                0.0,
+            'forBookings':
+                int.tryParse(
+                  values['discountForBookings']?.toString() ?? '0',
+                ) ??
+                0,
+          },
+          'cancellationPolicy': {
+            'freeUntil':
+                DateTime.now()
+                    .add(
+                      Duration(
+                        hours:
+                            int.tryParse(
+                              values['cancellationPolicyHours']?.toString() ??
+                                  '0',
+                            ) ??
+                            0,
+                      ),
+                    )
+                    .toIso8601String(),
+            'fee':
+                double.tryParse(
+                  values['cancellationFeePercentage']?.toString() ?? '0',
+                ) ??
+                0.0,
+          },
           'refundProcessingDays':
               int.tryParse(values['refundProcessingDays']?.toString() ?? '0') ??
               0,

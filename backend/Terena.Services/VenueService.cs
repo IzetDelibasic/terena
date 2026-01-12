@@ -20,6 +20,48 @@ public class VenueService : BaseCRUDService<VenueDTO, VenueSearchObject, Venue, 
             .Ignore(dest => dest.Discount);
     }
 
+    public override async Task<Terena.Models.HelperClasses.PagedResult<VenueDTO>> GetPagedAsync(VenueSearchObject search)
+    {
+        var query = Context.Set<Venue>()
+            .Include(v => v.Reviews)
+            .AsQueryable();
+
+        query = AddFilter(search, query);
+
+        int count = await query.CountAsync();
+
+        if (!string.IsNullOrEmpty(search?.OrderBy) && !string.IsNullOrEmpty(search?.SortDirection))
+        {
+            query = ApplySorting(query, search.OrderBy, search.SortDirection);
+        }
+
+        if (search != null && search.Page.HasValue && search.PageSize.HasValue)
+        {
+            query = query.Skip((search.Page.Value - 1) * search.PageSize.Value).Take(search.PageSize.Value);
+        }
+
+        var list = await query.ToListAsync();
+        var result = list.Adapt<System.Collections.Generic.List<VenueDTO>>();
+
+        return new Terena.Models.HelperClasses.PagedResult<VenueDTO>
+        {
+            ResultList = result,
+            Count = count
+        };
+    }
+
+    public override VenueDTO GetById(int id)
+    {
+        var entity = Context.Set<Venue>()
+            .Include(v => v.Reviews)
+            .FirstOrDefault(v => v.Id == id);
+
+        if (entity == null)
+            return null;
+
+        return entity.Adapt<VenueDTO>();
+    }
+
     public override IQueryable<Venue> AddFilter(VenueSearchObject search, IQueryable<Venue> query)
     {
         if (!string.IsNullOrEmpty(search?.SearchTerm))

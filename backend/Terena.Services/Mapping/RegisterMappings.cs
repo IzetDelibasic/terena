@@ -33,10 +33,16 @@ namespace Terena.Services.Mapping
 
             TypeAdapterConfig<Venue, VenueDTO>.NewConfig()
                 .Map(dest => dest.AverageRating, src => src.Reviews != null && src.Reviews.Any() 
-                    ? (decimal)src.Reviews.Average(r => r.Rating) 
-                    : 0m)
+                    ? (decimal?)src.Reviews.Average(r => r.Rating) 
+                    : null)
                 .Map(dest => dest.TotalReviews, src => src.Reviews != null ? src.Reviews.Count : 0)
                 .Map(dest => dest.Amenities, src => GetAmenitiesFromBooleans(src))
+                .Map(dest => dest.HasParking, src => src.HasParking)
+                .Map(dest => dest.HasShowers, src => src.HasShowers)
+                .Map(dest => dest.HasLighting, src => src.HasLighting)
+                .Map(dest => dest.HasChangingRooms, src => src.HasChangingRooms)
+                .Map(dest => dest.HasEquipmentRental, src => src.HasEquipmentRental)
+                .Map(dest => dest.HasCafeBar, src => src.HasCafeBar)
                 .Map(dest => dest.OperatingHours, src => src.OperatingHours != null 
                     ? src.OperatingHours.Select(oh => new OperatingHourDTO 
                     { 
