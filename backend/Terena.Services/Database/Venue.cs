@@ -24,6 +24,8 @@ namespace Terena.Services.Database
         public bool HasChangingRooms { get; set; }
         public bool HasEquipmentRental { get; set; }
         public bool HasCafeBar { get; set; }
+        public bool HasWaterFountain { get; set; }
+        public bool HasSeatingArea { get; set; }
         
         public List<VenueAmenity> Amenities { get; set; }
         public List<OperatingHour> OperatingHours { get; set; }

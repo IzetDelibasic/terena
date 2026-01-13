@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Terena.Models.DTOs;
 using Terena.Models.Requests;
@@ -13,5 +15,6 @@ namespace Terena.Services.Interfaces
         Task<BookingDTO> CompleteBookingAsync(int bookingId);
         Task<BookingDTO> ProcessPaymentAsync(int bookingId, string transactionId);
         Task<BookingDTO> RefundBookingAsync(int bookingId, decimal? refundAmount = null);
+        Task<List<string>> GetAvailableTimeSlotsAsync(int venueId, DateTime date, int? courtId = null);
     }
 }

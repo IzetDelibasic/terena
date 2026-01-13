@@ -7,7 +7,6 @@ import 'package:terena_admin/models/search_result.dart';
 import 'package:terena_admin/providers/venue_provider.dart';
 import 'package:terena_admin/screens/venue_add_screen_new.dart';
 import 'package:terena_admin/screens/venue_details_screen.dart';
-import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -53,7 +52,6 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       venuesResult = await venueProvider.get(filter: filter);
-    } catch (e) {
     } finally {
       setState(() => isLoading = false);
     }
@@ -87,25 +85,29 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-      "Court & Field Management",
+      "Venues",
     );
   }
 
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.all(30),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: Colors.grey[300]!, width: 1)),
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           const Text(
-            'Court & Field Management',
+            'Venues',
             style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
               color: Colors.black87,
             ),
           ),
-          ElevatedButton(
+          ElevatedButton.icon(
             onPressed: () async {
               final result = await Navigator.push(
                 context,
@@ -117,20 +119,22 @@ class _HomeScreenState extends State<HomeScreen> {
                 loadVenues();
               }
             },
+            icon: const Icon(Icons.add, color: Colors.white, size: 20),
+            label: const Text(
+              'ADD NEW VENUE',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+                color: Colors.white,
+              ),
+            ),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color.fromRGBO(32, 76, 56, 1),
-              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 18),
+              backgroundColor: const Color(0xFF4CAF50),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
-            ),
-            child: const Text(
-              'ADD NEW',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-              ),
+              elevation: 2,
             ),
           ),
         ],
@@ -140,7 +144,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildFilters() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+      padding: const EdgeInsets.all(30),
+      color: Colors.white,
       child: Row(
         children: [
           Expanded(
@@ -151,24 +156,27 @@ class _HomeScreenState extends State<HomeScreen> {
                 labelText: 'Sport Type',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.grey[300]!),
                 ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.grey[300]!),
+                ),
+                filled: true,
+                fillColor: Colors.grey[50],
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 15,
                   vertical: 15,
                 ),
               ),
               items: const [
-                DropdownMenuItem(value: null, child: Text('All')),
-                DropdownMenuItem(value: 'Football', child: Text('Football')),
+                DropdownMenuItem(value: null, child: Text('All Sports')),
+                DropdownMenuItem(value: 'Tennis', child: Text('Tennis')),
                 DropdownMenuItem(
                   value: 'Basketball',
                   child: Text('Basketball'),
                 ),
-                DropdownMenuItem(value: 'Tennis', child: Text('Tennis')),
-                DropdownMenuItem(
-                  value: 'Volleyball',
-                  child: Text('Volleyball'),
-                ),
+                DropdownMenuItem(value: 'Football', child: Text('Football')),
               ],
               onChanged: (value) {
                 setState(() => selectedSportType = value);
@@ -185,20 +193,28 @@ class _HomeScreenState extends State<HomeScreen> {
                 labelText: 'Location',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.grey[300]!),
                 ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.grey[300]!),
+                ),
+                filled: true,
+                fillColor: Colors.grey[50],
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 15,
                   vertical: 15,
                 ),
               ),
               items: const [
-                DropdownMenuItem(value: null, child: Text('All')),
+                DropdownMenuItem(value: null, child: Text('All Locations')),
                 DropdownMenuItem(value: 'Sarajevo', child: Text('Sarajevo')),
                 DropdownMenuItem(value: 'Mostar', child: Text('Mostar')),
                 DropdownMenuItem(
                   value: 'Banja Luka',
                   child: Text('Banja Luka'),
                 ),
+                DropdownMenuItem(value: 'Neum', child: Text('Neum')),
               ],
               onChanged: (value) {
                 setState(() => selectedLocation = value);
@@ -212,22 +228,26 @@ class _HomeScreenState extends State<HomeScreen> {
             child: DropdownButtonFormField<String>(
               value: selectedSurface,
               decoration: InputDecoration(
-                labelText: 'Surface',
+                labelText: 'Surface Type',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.grey[300]!),
                 ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.grey[300]!),
+                ),
+                filled: true,
+                fillColor: Colors.grey[50],
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 15,
                   vertical: 15,
                 ),
               ),
               items: const [
-                DropdownMenuItem(value: null, child: Text('All')),
+                DropdownMenuItem(value: null, child: Text('All Surfaces')),
                 DropdownMenuItem(value: 'Grass', child: Text('Grass')),
-                DropdownMenuItem(
-                  value: 'Artificial Turf',
-                  child: Text('Artificial Turf'),
-                ),
+                DropdownMenuItem(value: 'Clay', child: Text('Clay')),
                 DropdownMenuItem(value: 'Hardwood', child: Text('Hardwood')),
               ],
               onChanged: (value) {
@@ -245,7 +265,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 labelText: 'Search venues...',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.grey[300]!),
                 ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.grey[300]!),
+                ),
+                filled: true,
+                fillColor: Colors.grey[50],
                 prefixIcon: const Icon(Icons.search),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 15,
@@ -263,8 +290,9 @@ class _HomeScreenState extends State<HomeScreen> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
+              side: BorderSide(color: Colors.grey[400]!),
             ),
-            child: const Text('CLEAR'),
+            child: Text('CLEAR', style: TextStyle(color: Colors.grey[700])),
           ),
         ],
       ),
@@ -272,7 +300,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildVenueGrid() {
+    if (venuesResult == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     final venues = venuesResult?.result;
+
     if (venues == null || venues.isEmpty) {
       return const Center(
         child: Text(

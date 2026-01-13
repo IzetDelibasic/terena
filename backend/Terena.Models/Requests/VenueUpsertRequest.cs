@@ -14,12 +14,15 @@ namespace Terena.Models.Requests
         public string ContactEmail { get; set; }
         public string VenueImageUrl { get; set; }
         
+        public List<string>? Amenities { get; set; }
         public bool HasParking { get; set; }
         public bool HasShowers { get; set; }
         public bool HasLighting { get; set; }
         public bool HasChangingRooms { get; set; }
         public bool HasEquipmentRental { get; set; }
         public bool HasCafeBar { get; set; }
+        public bool HasWaterFountain { get; set; }
+        public bool HasSeatingArea { get; set; }
         
         public List<OperatingHourRequest>? OperatingHours { get; set; }
         public CancellationPolicyRequest? CancellationPolicy { get; set; }

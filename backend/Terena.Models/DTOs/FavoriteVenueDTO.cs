@@ -15,5 +15,6 @@ namespace Terena.Models.DTOs
         public string? VenueImageUrl { get; set; }
         public decimal? VenueAverageRating { get; set; }
         public int VenueTotalReviews { get; set; }
+        public VenueDTO? Venue { get; set; }
     }
 }

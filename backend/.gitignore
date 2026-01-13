@@ -48,3 +48,6 @@ wwwroot/
 
 # Ignore secrets
 secrets.json
+.env
+.env.local
+.env.*.local
