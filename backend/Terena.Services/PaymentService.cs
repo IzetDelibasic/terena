@@ -6,11 +6,18 @@ namespace Terena.Services
 {
     public class PaymentService
     {
-        private const string StripeSecretKey = "sk_test_51QcVg0RrsKyZUC4iYsHfn7gp6YBrz9n9xYhJ1kXUZnJp6aP3vQP4k0Ij8MwX8bXJ0n8jX7";
-        
         public PaymentService()
         {
-            StripeConfiguration.ApiKey = StripeSecretKey;
+            var stripeSecretKey = Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY");
+            
+            if (string.IsNullOrEmpty(stripeSecretKey))
+            {
+                throw new InvalidOperationException(
+                    "STRIPE_SECRET_KEY environment variable is not set. " +
+                    "Please add STRIPE_SECRET_KEY=your_key to the .env file in Terena.API folder.");
+            }
+            
+            StripeConfiguration.ApiKey = stripeSecretKey;
         }
 
         public async Task<PaymentIntent> CreatePaymentIntentAsync(decimal amount, string currency = "eur", string description = null)

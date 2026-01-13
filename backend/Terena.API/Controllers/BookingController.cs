@@ -25,17 +25,37 @@ namespace Terena.API.Controllers
         [HttpPost("create-payment-intent")]
         public async Task<ActionResult> CreatePaymentIntent([FromBody] CreatePaymentIntentRequest request)
         {
-            var paymentIntent = await _paymentService.CreatePaymentIntentAsync(
-                request.Amount,
-                "eur",
-                request.Description
-            );
-
-            return Ok(new
+            try
             {
-                clientSecret = paymentIntent.ClientSecret,
-                paymentIntentId = paymentIntent.Id
-            });
+                var paymentIntent = await _paymentService.CreatePaymentIntentAsync(
+                    request.Amount,
+                    "eur",
+                    request.Description
+                );
+
+                return Ok(new
+                {
+                    clientSecret = paymentIntent.ClientSecret,
+                    paymentIntentId = paymentIntent.Id
+                });
+            }
+            catch (Stripe.StripeException ex)
+            {
+                return BadRequest(new
+                {
+                    error = "Stripe error",
+                    message = ex.Message,
+                    code = ex.StripeError?.Code
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    error = "Internal server error",
+                    message = ex.Message
+                });
+            }
         }
 
         [HttpPost("{id}/confirm")]

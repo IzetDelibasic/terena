@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import '../models/venue.dart';
 import '../models/review.dart';
 import '../providers/favorite_provider.dart';
@@ -53,15 +54,11 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
 
   double get _discount {
     final discountData = widget.venue.discount;
-    if (discountData != null &&
-        discountData.percentage != null &&
-        discountData.forBookings != null) {
-      if (_duration >= discountData.forBookings!) {
+    if (discountData != null && discountData.percentage != null) {
+      // Discount applies for bookings of 3+ hours
+      if (_duration >= 3) {
         return _totalPrice * (discountData.percentage! / 100);
       }
-    }
-    if (_duration >= 3) {
-      return _totalPrice * 0.10;
     }
     return 0.0;
   }
@@ -516,7 +513,6 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
 
                   if (widget.venue.discount != null &&
                       widget.venue.discount!.percentage != null &&
-                      widget.venue.discount!.forBookings != null &&
                       widget.venue.discount!.percentage! > 0)
                     Container(
                       padding: const EdgeInsets.all(16),
@@ -536,7 +532,7 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
-                              'Get ${widget.venue.discount!.percentage!.toStringAsFixed(0)}% discount for bookings of ${widget.venue.discount!.forBookings} hours or more!',
+                              '${widget.venue.discount!.percentage!.toStringAsFixed(0)}% discount if you book 3+ hours',
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
@@ -577,7 +573,10 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
                           'Free cancellation until 24 hours before booking',
                         ),
                         _buildBulletPoint(
-                          '50% cancellation fee applies after deadline',
+                          widget.venue.cancellationPolicy != null &&
+                                  widget.venue.cancellationPolicy!.fee != null
+                              ? '${widget.venue.cancellationPolicy!.fee!.toStringAsFixed(0)}% cancellation fee applies after deadline'
+                              : '50% cancellation fee applies after deadline',
                         ),
                         _buildBulletPoint(
                           'Refund processed within 3-5 business days',
@@ -749,6 +748,7 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
                   ),
                   const SizedBox(height: 16),
 
+
                   Row(
                     children: [
                       Expanded(
@@ -775,6 +775,7 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
                             decoration: BoxDecoration(
                               border: Border.all(color: Colors.grey[300]!),
                               borderRadius: BorderRadius.circular(12),
+                              
                             ),
                             child: Row(
                               children: [
@@ -912,14 +913,9 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       IconButton(
-                        onPressed:
-                            _duration > 1
-                                ? () {
-                                  setState(() {
-                                    _duration--;
-                                  });
-                                }
-                                : null,
+                        onPressed: (_duration > 1
+                                ? () => setState(() => _duration--)
+                                : null),
                         icon: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
@@ -1080,7 +1076,9 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
             Expanded(
               child: ElevatedButton(
                 onPressed:
-                    _availableSlots.isEmpty || _selectedTimeSlot == null
+                    
+                            _availableSlots.isEmpty ||
+                            _selectedTimeSlot == null
                         ? null
                         : () async {
                           await _handleBooking();
@@ -1093,14 +1091,14 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.payment),
-                    SizedBox(width: 8),
+                    const Icon(Icons.payment),
+                    const SizedBox(width: 8),
                     Text(
                       'Book Now',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -1138,6 +1136,43 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
       return;
     }
 
+    // Show payment method selection dialog
+    final paymentMethod = await showDialog<String>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Select Payment Method'),
+            contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: Icon(Icons.credit_card, color: Colors.green[700]),
+                  title: const Text('Pay with Card'),
+                  subtitle: const Text('Secure online payment'),
+                  onTap: () => Navigator.of(context).pop('Card'),
+                ),
+                const Divider(),
+                ListTile(
+                  leading: Icon(Icons.money, color: Colors.green[700]),
+                  title: const Text('Cash on Arrival'),
+                  subtitle: const Text('Pay at the venue'),
+                  onTap: () => Navigator.of(context).pop('Cash'),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cancel'),
+              ),
+            ],
+          ),
+    );
+
+    if (paymentMethod == null) return;
+
+    // Show booking confirmation
     final confirmed = await showDialog<bool>(
       context: context,
       builder:
@@ -1170,11 +1205,37 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const Text(
-                      'Payment will be processed as Cash on Arrival',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontStyle: FontStyle.italic,
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color:
+                            paymentMethod == 'Card'
+                                ? Colors.blue[50]
+                                : Colors.orange[50],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            paymentMethod == 'Card'
+                                ? Icons.credit_card
+                                : Icons.money,
+                            color:
+                                paymentMethod == 'Card'
+                                    ? Colors.blue[700]
+                                    : Colors.orange[700],
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            paymentMethod == 'Card'
+                                ? 'Payment: Card (Secure Payment)'
+                                : 'Payment: Cash on Arrival',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -1200,6 +1261,107 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
 
     if (confirmed != true) return;
 
+    String? paymentIntentId;
+
+    // If card payment, show Stripe payment sheet
+    if (paymentMethod == 'Card') {
+      try {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder:
+              (context) => const Center(child: CircularProgressIndicator()),
+        );
+
+        // Create payment intent
+        print('Creating payment intent for amount: $_finalPrice');
+        final paymentIntentData = await _bookingProvider.createPaymentIntent(
+          _finalPrice,
+          'Booking at ${widget.venue.name}',
+        );
+
+        Navigator.of(context).pop();
+
+        if (paymentIntentData == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Failed to initialize payment. Please check your connection and try again.',
+              ),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 4),
+            ),
+          );
+          return;
+        }
+
+        // Validate payment intent data
+        if (!paymentIntentData.containsKey('clientSecret') ||
+            paymentIntentData['clientSecret'] == null) {
+          print('Invalid payment intent data: $paymentIntentData');
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Payment configuration error. Please contact support.',
+              ),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 4),
+            ),
+          );
+          return;
+        }
+
+        print('Payment intent created, initializing payment sheet...');
+
+        // Initialize payment sheet
+        await Stripe.instance.initPaymentSheet(
+          paymentSheetParameters: SetupPaymentSheetParameters(
+            paymentIntentClientSecret: paymentIntentData['clientSecret'],
+            merchantDisplayName: 'Terena',
+            style: ThemeMode.light,
+          ),
+        );
+
+        print('Presenting payment sheet...');
+
+        // Present payment sheet
+        await Stripe.instance.presentPaymentSheet();
+
+        print('Payment completed successfully');
+
+        paymentIntentId = paymentIntentData['paymentIntentId'];
+      } on StripeException catch (e) {
+        if (context.mounted) {
+          Navigator.of(context).pop();
+          print('Stripe error: ${e.error.code} - ${e.error.message}');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Payment error: ${e.error.localizedMessage ?? e.error.message}',
+              ),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 4),
+            ),
+          );
+        }
+        return;
+      } catch (e) {
+        if (context.mounted) {
+          Navigator.of(context).pop();
+          print('Payment error: $e');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Payment cancelled or failed. Please try again.'),
+              backgroundColor: Colors.orange,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+        return;
+      }
+    }
+
+    // Create booking
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -1229,6 +1391,8 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
       pricePerHour: widget.venue.pricePerHour ?? 0,
       numberOfPlayers: 1,
       notes: null,
+      paymentMethod: paymentMethod,
+      stripePaymentIntentId: paymentIntentId,
     );
 
     Navigator.of(context).pop();
@@ -1275,12 +1439,17 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.orange[50],
+                        color:
+                            paymentMethod == 'Card'
+                                ? Colors.blue[50]
+                                : Colors.orange[50],
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Text(
-                        'Status: Pending confirmation\nPayment: Cash on arrival',
-                        style: TextStyle(fontSize: 12),
+                      child: Text(
+                        paymentMethod == 'Card'
+                            ? 'Status: Pending confirmation\nPayment: Card (Paid)'
+                            : 'Status: Pending confirmation\nPayment: Cash on arrival',
+                        style: const TextStyle(fontSize: 12),
                       ),
                     ),
                   ],
@@ -1419,3 +1588,4 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
     );
   }
 }
+

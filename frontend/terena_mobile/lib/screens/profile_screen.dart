@@ -156,7 +156,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             child: const Text(
                               'Save Changes',
-                              style: TextStyle(fontSize: 16),
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ),

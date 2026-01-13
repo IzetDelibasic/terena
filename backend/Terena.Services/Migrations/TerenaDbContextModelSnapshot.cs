@@ -448,7 +448,16 @@ namespace Terena.Services.Migrations
                     b.Property<bool>("HasParking")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("HasSeatingArea")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("HasShowers")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("HasWaterFountain")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsOpen")
                         .HasColumnType("bit");
 
                     b.Property<string>("Location")

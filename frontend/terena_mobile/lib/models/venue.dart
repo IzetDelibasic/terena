@@ -92,6 +92,8 @@ class Venue {
       'cancellationPolicy': cancellationPolicy?.toJson(),
     };
   }
+
+  String? get venueImageUrl => imageUrl;
 }
 
 class Discount {

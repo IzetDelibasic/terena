@@ -5,6 +5,7 @@ namespace Terena.Models.SearchObjects
 {
     public class BookingSearchObject : BaseSearchObject
     {
+        public string? BookingNumber { get; set; }
         public int? UserId { get; set; }
         public int? VenueId { get; set; }
         public int? CourtId { get; set; }

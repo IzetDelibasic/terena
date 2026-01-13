@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Terena.API.Filters;
 using Terena.Services.Mapping;
 
+DotNetEnv.Env.Load();
+
 var builder = WebApplication.CreateBuilder(args);
 
 RegisterMappings.Register();

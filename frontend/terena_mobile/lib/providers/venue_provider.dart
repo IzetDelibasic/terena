@@ -44,7 +44,11 @@ class VenueProvider {
     try {
       var url = "$baseUrl/Venue/$id";
       var uri = Uri.parse(url);
+      print('Fetching venue details - URL: $url');
       var response = await http.get(uri);
+
+      print('Get venue - Status: ${response.statusCode}');
+      print('Get venue - Response: ${response.body}');
 
       if (response.statusCode == 200) {
         var data = jsonDecode(response.body);

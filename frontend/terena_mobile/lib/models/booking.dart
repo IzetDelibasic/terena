@@ -20,6 +20,7 @@ class Booking {
   final String? courtName;
   final int? courtId;
   final String? notes;
+  final String? venueImageUrl;
 
   Booking({
     required this.id,
@@ -43,6 +44,7 @@ class Booking {
     this.courtName,
     this.courtId,
     this.notes,
+    this.venueImageUrl,
   });
 
   factory Booking.fromJson(Map<String, dynamic> json) {
@@ -120,6 +122,7 @@ class Booking {
       courtName: json['courtName'],
       courtId: json['courtId'],
       notes: json['notes'],
+      venueImageUrl: json['venueImageUrl'],
     );
   }
 

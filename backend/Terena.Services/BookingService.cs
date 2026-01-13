@@ -46,6 +46,11 @@ namespace Terena.Services
         {
             var filteredQuery = base.AddFilter(search, query);
 
+            if (!string.IsNullOrWhiteSpace(search.BookingNumber))
+            {
+                filteredQuery = filteredQuery.Where(b => b.BookingNumber.Contains(search.BookingNumber));
+            }
+
             if (search.UserId.HasValue)
             {
                 filteredQuery = filteredQuery.Where(b => b.UserId == search.UserId.Value);
@@ -174,13 +179,25 @@ namespace Terena.Services
             var duration = (request.EndTime - request.StartTime).TotalHours;
             entity.Duration = (decimal)duration;
             entity.SubtotalPrice = entity.Duration * request.PricePerHour;
-            entity.DiscountPercentage = request.DiscountPercentage ?? 0;
+            
+            var venue = Context.Set<Venue>()
+                .Include(v => v.Discount)
+                .FirstOrDefault(v => v.Id == request.VenueId);
+            
+            entity.DiscountPercentage = 0;
+            if (venue?.Discount != null && venue.Discount.Percentage > 0 && venue.Discount.ForBookings > 0)
+            {
+                if (entity.Duration >= venue.Discount.ForBookings)
+                {
+                    entity.DiscountPercentage = venue.Discount.Percentage;
+                }
+            }
+            
             entity.DiscountAmount = entity.SubtotalPrice * (entity.DiscountPercentage / 100);
             entity.ServiceFee = 0;
             entity.TotalPrice = entity.SubtotalPrice - entity.DiscountAmount + entity.ServiceFee;
 
             int cancellationPolicyHours = 24;
-            var venue = Context.Set<Venue>().Find(request.VenueId);
             if (venue != null && venue.CancellationPolicyHours.HasValue)
             {
                 cancellationPolicyHours = venue.CancellationPolicyHours.Value;

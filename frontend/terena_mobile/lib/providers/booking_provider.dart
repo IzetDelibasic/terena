@@ -16,14 +16,26 @@ class BookingProvider {
       Map<String, String> headers = {"Content-Type": "application/json"};
       var body = jsonEncode({"amount": amount, "description": description});
 
+      print('Creating payment intent...');
+      print('URL: $url');
+      print('Body: $body');
+
       var response = await http.post(uri, headers: headers, body: body);
 
       print('Create payment intent - Status: ${response.statusCode}');
+      print('Create payment intent - Response: ${response.body}');
 
       if (response.statusCode == 200) {
-        return jsonDecode(response.body);
+        var responseData = jsonDecode(response.body);
+        print('Payment intent created successfully: $responseData');
+        return responseData;
+      } else {
+        print(
+          'Failed to create payment intent. Status: ${response.statusCode}',
+        );
+        print('Error response: ${response.body}');
+        return null;
       }
-      return null;
     } catch (e) {
       print('Error creating payment intent: $e');
       return null;
@@ -89,6 +101,8 @@ class BookingProvider {
     required double pricePerHour,
     int numberOfPlayers = 1,
     String? notes,
+    String paymentMethod = 'Cash',
+    String? stripePaymentIntentId,
   }) async {
     try {
       var url = "$baseUrl/Booking";
@@ -106,7 +120,8 @@ class BookingProvider {
         "numberOfPlayers": numberOfPlayers,
         "isGroupBooking": numberOfPlayers > 1,
         "notes": notes,
-        "paymentMethod": "Cash",
+        "paymentMethod": paymentMethod,
+        "stripePaymentIntentId": stripePaymentIntentId,
       });
 
       print('Create booking - URL: $url');

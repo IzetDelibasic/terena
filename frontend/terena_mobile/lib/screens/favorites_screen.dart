@@ -176,12 +176,35 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       top: Radius.circular(12),
                     ),
                   ),
-                  child: Center(
-                    child: Icon(
-                      _getSportIcon(venue.sportType),
-                      size: 60,
-                      color: Colors.grey[400],
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(12),
                     ),
+                    child:
+                        venue.venueImageUrl != null &&
+                                venue.venueImageUrl!.isNotEmpty
+                            ? Image.network(
+                              venue.venueImageUrl!,
+                              width: double.infinity,
+                              height: 180,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Center(
+                                  child: Icon(
+                                    _getSportIcon(venue.sportType),
+                                    size: 60,
+                                    color: Colors.grey[400],
+                                  ),
+                                );
+                              },
+                            )
+                            : Center(
+                              child: Icon(
+                                _getSportIcon(venue.sportType),
+                                size: 60,
+                                color: Colors.grey[400],
+                              ),
+                            ),
                   ),
                 ),
                 Positioned(
@@ -292,7 +315,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                           const Icon(Icons.star, size: 18, color: Colors.amber),
                           const SizedBox(width: 6),
                           Text(
-                            '${venue.rating?.toStringAsFixed(1) ?? '0.0'}',
+                            venue.rating?.toStringAsFixed(1) ?? '0.0',
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,

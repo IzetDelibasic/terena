@@ -233,10 +233,29 @@ class _BookingsScreenState extends State<BookingsScreen>
                     color: Colors.green[100],
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(
-                    Icons.sports_soccer,
-                    color: Colors.green[700],
-                    size: 30,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child:
+                        booking.venueImageUrl != null &&
+                                booking.venueImageUrl!.isNotEmpty
+                            ? Image.network(
+                              booking.venueImageUrl!,
+                              width: 60,
+                              height: 60,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Icon(
+                                  Icons.sports_soccer,
+                                  color: Colors.green[700],
+                                  size: 30,
+                                );
+                              },
+                            )
+                            : Icon(
+                              Icons.sports_soccer,
+                              color: Colors.green[700],
+                              size: 30,
+                            ),
                   ),
                 ),
                 const SizedBox(width: 12),

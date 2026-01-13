@@ -1,9 +1,10 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
 
-class AuthProvider {
+class AuthProvider extends ChangeNotifier {
   static const String baseUrl = "http://10.0.2.2:5152/api";
   User? _currentUser;
   String? _token;
@@ -11,8 +12,12 @@ class AuthProvider {
   User? get currentUser => _currentUser;
   bool get isLoggedIn => _currentUser != null;
 
+  String? _lastError;
+  String? get lastError => _lastError;
+
   Future<bool> login(String username, String password) async {
     try {
+      _lastError = null;
       var url = "$baseUrl/User/login";
       var uri = Uri.parse(url);
 
@@ -38,10 +43,30 @@ class AuthProvider {
         await prefs.setString('password', password);
 
         return true;
+      } else {
+        try {
+          var errorData = jsonDecode(response.body);
+
+          if (errorData['message'] != null) {
+            _lastError = errorData['message'];
+          } else if (errorData['errors'] != null &&
+              errorData['errors']['generalException'] != null) {
+            _lastError = errorData['errors']['generalException'][0];
+          } else if (errorData['errors'] != null &&
+              errorData['errors']['userException'] != null) {
+            _lastError = errorData['errors']['userException'][0];
+          } else {
+            _lastError = 'Invalid username or password';
+          }
+        } catch (e) {
+          print('Error parsing response: $e');
+          _lastError = 'Invalid username or password';
+        }
       }
       return false;
     } catch (e) {
       print('Login error: $e');
+      _lastError = 'Network error. Please try again.';
       return false;
     }
   }
@@ -50,9 +75,9 @@ class AuthProvider {
     required String username,
     required String password,
     required String email,
-    String? firstName,
-    String? lastName,
     String? phoneNumber,
+    String? country,
+    String? address,
   }) async {
     try {
       var url = "$baseUrl/User/register";
@@ -63,9 +88,9 @@ class AuthProvider {
         "username": username,
         "password": password,
         "email": email,
-        "firstName": firstName,
-        "lastName": lastName,
         "phoneNumber": phoneNumber,
+        "country": country,
+        "address": address,
         "role": 1,
       });
 

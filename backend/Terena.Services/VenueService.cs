@@ -54,10 +54,33 @@ public class VenueService : BaseCRUDService<VenueDTO, VenueSearchObject, Venue, 
     {
         var entity = Context.Set<Venue>()
             .Include(v => v.Reviews)
+            .Include(v => v.CancellationPolicy)
+            .Include(v => v.Discount)
             .FirstOrDefault(v => v.Id == id);
 
         if (entity == null)
             return null;
+
+        return entity.Adapt<VenueDTO>();
+    }
+
+    public override VenueDTO Update(int id, VenueUpsertRequest request)
+    {
+        var entity = Context.Set<Venue>()
+            .Include(v => v.CancellationPolicy)
+            .Include(v => v.Discount)
+            .FirstOrDefault(v => v.Id == id);
+
+        if (entity == null)
+        {
+            throw new Exception("Unable to find venue with the provided id!");
+        }
+
+        request.Adapt(entity);
+        BeforeUpdate(request, entity);
+        Context.SaveChanges();
+
+        AfterUpdate(request, entity);
 
         return entity.Adapt<VenueDTO>();
     }
@@ -94,21 +117,76 @@ public class VenueService : BaseCRUDService<VenueDTO, VenueSearchObject, Venue, 
 
     public override void BeforeInsert(VenueUpsertRequest request, Venue entity)
     {
-        entity.HasParking = request.HasParking;
-        entity.HasShowers = request.HasShowers;
-        entity.HasLighting = request.HasLighting;
-        entity.HasChangingRooms = request.HasChangingRooms;
-        entity.HasEquipmentRental = request.HasEquipmentRental;
-        entity.HasCafeBar = request.HasCafeBar;
+        MapAmenitiesFromList(request, entity);
+        MapCancellationPolicyAndDiscount(request, entity);
     }
 
     public override void BeforeUpdate(VenueUpsertRequest request, Venue entity)
     {
-        entity.HasParking = request.HasParking;
-        entity.HasShowers = request.HasShowers;
-        entity.HasLighting = request.HasLighting;
-        entity.HasChangingRooms = request.HasChangingRooms;
-        entity.HasEquipmentRental = request.HasEquipmentRental;
-        entity.HasCafeBar = request.HasCafeBar;
+        MapAmenitiesFromList(request, entity);
+        MapCancellationPolicyAndDiscount(request, entity);
+    }
+    
+    private void MapCancellationPolicyAndDiscount(VenueUpsertRequest request, Venue entity)
+    {
+        if (request.CancellationPolicy != null)
+        {
+            if (entity.CancellationPolicy == null)
+            {
+                entity.CancellationPolicy = new CancellationPolicy
+                {
+                    FreeUntil = request.CancellationPolicy.FreeUntil,
+                    Fee = request.CancellationPolicy.Fee
+                };
+            }
+            else
+            {
+                entity.CancellationPolicy.FreeUntil = request.CancellationPolicy.FreeUntil;
+                entity.CancellationPolicy.Fee = request.CancellationPolicy.Fee;
+            }
+        }
+
+        if (request.Discount != null)
+        {
+            if (entity.Discount == null)
+            {
+                entity.Discount = new Discount
+                {
+                    Percentage = request.Discount.Percentage,
+                    ForBookings = request.Discount.ForBookings
+                };
+            }
+            else
+            {
+                entity.Discount.Percentage = request.Discount.Percentage;
+                entity.Discount.ForBookings = request.Discount.ForBookings;
+            }
+        }
+    }
+    
+    private void MapAmenitiesFromList(VenueUpsertRequest request, Venue entity)
+    {
+        if (request.Amenities != null && request.Amenities.Any())
+        {
+            entity.HasParking = request.Amenities.Contains("Parking");
+            entity.HasShowers = request.Amenities.Contains("Showers");
+            entity.HasLighting = request.Amenities.Contains("Lighting");
+            entity.HasChangingRooms = request.Amenities.Contains("Restrooms");
+            entity.HasEquipmentRental = request.Amenities.Contains("WiFi");
+            entity.HasCafeBar = request.Amenities.Contains("CCTV");
+            entity.HasWaterFountain = request.Amenities.Contains("Water Fountain");
+            entity.HasSeatingArea = request.Amenities.Contains("Seating Area");
+        }
+        else
+        {
+            entity.HasParking = request.HasParking;
+            entity.HasShowers = request.HasShowers;
+            entity.HasLighting = request.HasLighting;
+            entity.HasChangingRooms = request.HasChangingRooms;
+            entity.HasEquipmentRental = request.HasEquipmentRental;
+            entity.HasCafeBar = request.HasCafeBar;
+            entity.HasWaterFountain = request.HasWaterFountain;
+            entity.HasSeatingArea = request.HasSeatingArea;
+        }
     }
 }

@@ -43,6 +43,8 @@ namespace Terena.Services.Mapping
                 .Map(dest => dest.HasChangingRooms, src => src.HasChangingRooms)
                 .Map(dest => dest.HasEquipmentRental, src => src.HasEquipmentRental)
                 .Map(dest => dest.HasCafeBar, src => src.HasCafeBar)
+                .Map(dest => dest.HasWaterFountain, src => src.HasWaterFountain)
+                .Map(dest => dest.HasSeatingArea, src => src.HasSeatingArea)
                 .Map(dest => dest.OperatingHours, src => src.OperatingHours != null 
                     ? src.OperatingHours.Select(oh => new OperatingHourDTO 
                     { 
@@ -73,9 +75,11 @@ namespace Terena.Services.Mapping
             if (venue.HasParking) amenities.Add("Parking");
             if (venue.HasShowers) amenities.Add("Showers");
             if (venue.HasLighting) amenities.Add("Lighting");
-            if (venue.HasChangingRooms) amenities.Add("Changing Rooms");
-            if (venue.HasEquipmentRental) amenities.Add("Equipment Rental");
-            if (venue.HasCafeBar) amenities.Add("Cafe/Bar");
+            if (venue.HasChangingRooms) amenities.Add("Restrooms");
+            if (venue.HasEquipmentRental) amenities.Add("WiFi");
+            if (venue.HasCafeBar) amenities.Add("CCTV");
+            if (venue.HasWaterFountain) amenities.Add("Water Fountain");
+            if (venue.HasSeatingArea) amenities.Add("Seating Area");
             return amenities;
         }
     }

@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Mapster;
 using Terena.Models.DTOs;
 using Terena.Models.Enums;
+using Terena.Models.Exceptions;
 using Terena.Models.Requests;
 using Terena.Models.SearchObjects;
 using Terena.Services.BaseServices;
@@ -158,13 +159,13 @@ namespace Terena.Services
                 .FirstOrDefaultAsync(u => u.Username == username || u.Email == username);
 
             if (user == null)
-                throw new Exception("Invalid username or password!");
+                throw new UserException("Invalid username or password!");
 
             if (user.Status == UserStatus.Blocked)
-                throw new Exception("Your account has been blocked. Reason: " + user.BlockReason);
+                throw new UserException("Your account has been blocked. Reason: " + user.BlockReason);
 
             if (!BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
-                throw new Exception("Invalid username or password!");
+                throw new UserException("Invalid username or password!");
 
             user.LastLogin = DateTime.UtcNow;
             await Context.SaveChangesAsync();

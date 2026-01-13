@@ -15,13 +15,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _emailController = TextEditingController();
-  final _firstNameController = TextEditingController();
-  final _lastNameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _authProvider = AuthProvider();
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  String? _selectedCity;
+  final String _country = 'Bosnia and Herzegovina';
+  final List<String> _cities = ['Mostar', 'Sarajevo', 'Tuzla', 'Banja Luka'];
 
   @override
   void dispose() {
@@ -29,8 +30,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _emailController.dispose();
-    _firstNameController.dispose();
-    _lastNameController.dispose();
     _phoneController.dispose();
     super.dispose();
   }
@@ -45,14 +44,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         username: _usernameController.text,
         password: _passwordController.text,
         email: _emailController.text,
-        firstName:
-            _firstNameController.text.isEmpty
-                ? null
-                : _firstNameController.text,
-        lastName:
-            _lastNameController.text.isEmpty ? null : _lastNameController.text,
         phoneNumber:
             _phoneController.text.isEmpty ? null : _phoneController.text,
+        country: _country,
+        address: _selectedCity,
       );
 
       setState(() {
@@ -159,46 +154,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 const SizedBox(height: 16),
 
                 TextFormField(
-                  controller: _firstNameController,
-                  decoration: InputDecoration(
-                    labelText: 'First Name',
-                    prefixIcon: const Icon(Icons.badge),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value != null &&
-                        value.trim().isNotEmpty &&
-                        value.trim().length < 2) {
-                      return 'First name must be at least 2 characters';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                TextFormField(
-                  controller: _lastNameController,
-                  decoration: InputDecoration(
-                    labelText: 'Last Name',
-                    prefixIcon: const Icon(Icons.badge_outlined),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value != null &&
-                        value.trim().isNotEmpty &&
-                        value.trim().length < 2) {
-                      return 'Last name must be at least 2 characters';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                TextFormField(
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
                   decoration: InputDecoration(
@@ -216,6 +171,36 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       )) {
                         return 'Please enter a valid phone number';
                       }
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                DropdownButtonFormField<String>(
+                  value: _selectedCity,
+                  decoration: InputDecoration(
+                    labelText: 'City *',
+                    prefixIcon: const Icon(Icons.location_city),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  items:
+                      _cities.map((String city) {
+                        return DropdownMenuItem<String>(
+                          value: city,
+                          child: Text(city),
+                        );
+                      }).toList(),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedCity = newValue;
+                    });
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please select a city';
                     }
                     return null;
                   },

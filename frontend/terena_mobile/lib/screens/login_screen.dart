@@ -47,14 +47,95 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         );
       } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Invalid username or password'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        String? errorMessage = _authProvider.lastError;
+        if (errorMessage != null && errorMessage.contains('blocked')) {
+          String blockReason = 'No reason provided';
+          if (errorMessage.contains('Reason:')) {
+            blockReason = errorMessage.split('Reason:').last.trim();
+          }
+
+          _showBlockedAccountDialog(blockReason);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMessage ?? 'Invalid username or password'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
+  }
+
+  void _showBlockedAccountDialog(String reason) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (context) => AlertDialog(
+            title: Row(
+              children: [
+                Icon(Icons.block, color: Colors.red[700], size: 28),
+                const SizedBox(width: 8),
+                const Text('Account Blocked'),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Your account has been blocked.',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                const SizedBox(height: 12),
+                Text('Reason: $reason', style: const TextStyle(fontSize: 14)),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey[300]!),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'For assistance, please contact:',
+                        style: TextStyle(fontSize: 13, color: Colors.grey[700]),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(Icons.email, size: 16, color: Colors.green[700]),
+                          const SizedBox(width: 6),
+                          Text(
+                            'support@terena.com',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.green[700],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                style: TextButton.styleFrom(foregroundColor: Colors.green[700]),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+    );
   }
 
   @override
