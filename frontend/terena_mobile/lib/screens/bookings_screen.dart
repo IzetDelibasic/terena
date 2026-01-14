@@ -645,12 +645,17 @@ class _BookingsScreenState extends State<BookingsScreen>
                         ),
                         elevation: 2,
                       ),
-                      icon: const Icon(Icons.cancel, size: 20),
+                      icon: const Icon(
+                        Icons.cancel,
+                        size: 20,
+                        color: Colors.white,
+                      ),
                       label: const Text(
                         'Cancel Booking',
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
                       ),
                     ),

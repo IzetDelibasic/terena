@@ -13,7 +13,10 @@ import 'all_venues_screen.dart';
 class HomeScreen extends StatefulWidget {
   final AuthProvider authProvider;
 
-  const HomeScreen({super.key, required this.authProvider});
+  const HomeScreen({
+    super.key,
+    required this.authProvider,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -201,27 +204,18 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
 
                         if (_upcomingBookings.isNotEmpty) ...[
-                          Padding(
-                            padding: const EdgeInsets.all(20.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text(
-                                  'Upcoming Bookings',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                TextButton(
-                                  onPressed: () {},
-                                  child: const Text('See all'),
-                                ),
-                              ],
+                          const Padding(
+                            padding: EdgeInsets.all(20.0),
+                            child: Text(
+                              'Upcoming Bookings',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                           SizedBox(
-                            height: 120,
+                            height: 150,
                             child: ListView.builder(
                               scrollDirection: Axis.horizontal,
                               padding: const EdgeInsets.symmetric(
@@ -236,6 +230,49 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                         ],
+
+                        Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Top Rated Venues',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (context) => AllVenuesScreen(
+                                            authProvider: widget.authProvider,
+                                          ),
+                                    ),
+                                  );
+                                },
+                                child: const Text('See all'),
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(
+                          height: 220,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            itemCount: _filteredVenues.take(3).length,
+                            itemBuilder: (context, index) {
+                              return _buildVenueCard(
+                                _filteredVenues.take(3).toList()[index],
+                              );
+                            },
+                          ),
+                        ),
 
                         Padding(
                           padding: const EdgeInsets.all(20.0),
@@ -279,49 +316,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             },
                           ),
                         ),
-
-                        Padding(
-                          padding: const EdgeInsets.all(20.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                'Top Rated Venues',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder:
-                                          (context) => AllVenuesScreen(
-                                            authProvider: widget.authProvider,
-                                          ),
-                                    ),
-                                  );
-                                },
-                                child: const Text('See all'),
-                              ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(
-                          height: 200,
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            itemCount: _filteredVenues.take(3).length,
-                            itemBuilder: (context, index) {
-                              return _buildVenueCard(
-                                _filteredVenues.take(3).toList()[index],
-                              );
-                            },
-                          ),
-                        ),
                         const SizedBox(height: 20),
                       ],
                     ),
@@ -336,7 +330,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (booking.status == 'PENDING') statusColor = Colors.orange;
 
     return Container(
-      width: 300,
+      width: 280,
       margin: const EdgeInsets.only(right: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -350,24 +344,14 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(Icons.sports_soccer, color: Colors.grey[400]),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
                   booking.venueName,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
@@ -376,56 +360,64 @@ class _HomeScreenState extends State<HomeScreen> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    const Icon(Icons.location_on, size: 14, color: Colors.grey),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        booking.location ?? '',
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: statusColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(4),
                 ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    const Icon(Icons.access_time, size: 14, color: Colors.grey),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${booking.date.day}.${booking.date.month}.${booking.date.year} • ${booking.timeSlot}',
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${booking.totalAmount.toStringAsFixed(2)} BAM',
-                  style: const TextStyle(
+                child: Text(
+                  booking.status,
+                  style: TextStyle(
+                    color: statusColor,
+                    fontSize: 10,
                     fontWeight: FontWeight.bold,
-                    fontSize: 14,
                   ),
                 ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: statusColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Text(
-              booking.status,
-              style: TextStyle(
-                color: statusColor,
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
               ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const Icon(Icons.location_on, size: 14, color: Colors.grey),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  booking.location ?? '',
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              const Icon(Icons.calendar_today, size: 12, color: Colors.grey),
+              const SizedBox(width: 4),
+              Text(
+                '${booking.date.day}.${booking.date.month}.${booking.date.year}',
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              ),
+              const SizedBox(width: 8),
+              const Icon(Icons.access_time, size: 12, color: Colors.grey),
+              const SizedBox(width: 4),
+              Text(
+                booking.timeSlot,
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '${booking.totalAmount.toStringAsFixed(2)} BAM',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: Colors.green[700],
             ),
           ),
         ],
@@ -726,20 +718,20 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 Positioned(
-                  top: 8,
+                  bottom: 8,
                   left: 8,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
+                      horizontal: 8,
+                      vertical: 4,
                     ),
                     decoration: BoxDecoration(
                       color: Colors.red[600],
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(6),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withAlpha(30),
-                          blurRadius: 6,
+                          color: Colors.black.withAlpha(40),
+                          blurRadius: 4,
                           offset: const Offset(0, 2),
                         ),
                       ],
@@ -748,8 +740,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const Icon(
-                          Icons.local_fire_department,
-                          size: 14,
+                          Icons.star,
+                          size: 12,
                           color: Colors.white,
                         ),
                         const SizedBox(width: 4),
@@ -757,7 +749,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           'Top Rated',
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 11,
+                            fontSize: 10,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -768,7 +760,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
             Padding(
-              padding: const EdgeInsets.all(12.0),
+              padding: const EdgeInsets.all(10.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -776,7 +768,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     venue.name,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 15,
+                      fontSize: 14,
                       height: 1.2,
                     ),
                     maxLines: 1,
@@ -784,53 +776,20 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(height: 6),
                   Row(
-                    children: [
-                      Icon(
-                        Icons.location_on,
-                        size: 14,
-                        color: Colors.grey[600],
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          venue.location ?? '',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.star, size: 16, color: Colors.amber),
+                          const Icon(Icons.star, size: 14, color: Colors.amber),
                           const SizedBox(width: 4),
                           if (venue.rating != null && venue.rating! > 0) ...[
                             Text(
                               venue.rating!.toStringAsFixed(1),
                               style: const TextStyle(
-                                fontSize: 14,
+                                fontSize: 13,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            if (venue.reviewCount != null &&
-                                venue.reviewCount! > 0) ...[
-                              const SizedBox(width: 4),
-                              Text(
-                                '(${venue.reviewCount})',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                            ],
                           ] else ...[
                             const Text('New', style: TextStyle(fontSize: 12)),
                           ],
@@ -840,7 +799,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         '${venue.pricePerHour?.toStringAsFixed(0)} BAM/h',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                          fontSize: 13,
                           color: Colors.green[700],
                         ),
                       ),

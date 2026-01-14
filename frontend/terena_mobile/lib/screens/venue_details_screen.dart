@@ -934,7 +934,7 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
                   if (_reviews.length > 3) ...[
                     const SizedBox(height: 8),
                     TextButton(
-                      onPressed: () {},
+                      onPressed: _showAllReviewsModal,
                       child: const Text('View all reviews'),
                     ),
                   ],
@@ -1979,8 +1979,8 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
                         ),
                         child: Column(
                           children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   'Booking Number',
@@ -1989,10 +1989,11 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
                                     color: Colors.grey[600],
                                   ),
                                 ),
+                                const SizedBox(height: 4),
                                 Text(
                                   booking.bookingNumber,
                                   style: const TextStyle(
-                                    fontSize: 16,
+                                    fontSize: 14,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -2143,6 +2144,196 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
       );
       _loadAvailableSlots();
     }
+  }
+
+  void _showAllReviewsModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.9,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        builder: (context, scrollController) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            children: [
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'All Reviews',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  children: [
+                    const Icon(Icons.star, color: Colors.amber, size: 20),
+                    const SizedBox(width: 4),
+                    Text(
+                      _averageRating.toStringAsFixed(1),
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      ' ($_reviewCount ${_reviewCount == 1 ? 'review' : 'reviews'})',
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 24),
+              Expanded(
+                child: _isLoadingReviews
+                    ? const Center(child: CircularProgressIndicator())
+                    : _reviews.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.rate_review_outlined,
+                                  size: 64,
+                                  color: Colors.grey[400],
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'No reviews yet',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : ListView.builder(
+                            controller: scrollController,
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            itemCount: _reviews.length,
+                            itemBuilder: (context, index) {
+                              final review = _reviews[index];
+                              return Container(
+                                margin: const EdgeInsets.only(bottom: 12),
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: Colors.grey[200]!),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.05),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        CircleAvatar(
+                                          backgroundColor: Colors.green[100],
+                                          child: Text(
+                                            review.userUsername
+                                                    ?.substring(0, 1)
+                                                    .toUpperCase() ??
+                                                'U',
+                                            style: TextStyle(
+                                              color: Colors.green[700],
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                review.userUsername ?? 'Anonymous',
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16,
+                                                ),
+                                              ),
+                                              Row(
+                                                children: List.generate(
+                                                  5,
+                                                  (starIndex) => Icon(
+                                                    starIndex < review.rating
+                                                        ? Icons.star
+                                                        : Icons.star_border,
+                                                    size: 16,
+                                                    color: Colors.amber,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        if (review.createdAt != null)
+                                          Text(
+                                            _formatDate(review.createdAt!),
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey[600],
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                    if (review.comment != null &&
+                                        review.comment!.isNotEmpty) ...[
+                                      const SizedBox(height: 12),
+                                      Text(
+                                        review.comment!,
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          height: 1.4,
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   String _formatDate(DateTime date) {

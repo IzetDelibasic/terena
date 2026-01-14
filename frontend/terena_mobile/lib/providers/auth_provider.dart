@@ -79,7 +79,7 @@ class AuthProvider extends ChangeNotifier {
         "username": username,
         "password": password,
         "email": email,
-        "phoneNumber": phoneNumber,
+        "phone": phoneNumber,
         "country": country,
         "address": address,
         "role": 1,

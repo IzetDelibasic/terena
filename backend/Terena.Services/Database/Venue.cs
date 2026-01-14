@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Terena.Services.Database
 {
-    public class Venue
+    public class Venue : ISoftDeletable
     {
         public int Id { get; set; }
         public string Name { get; set; }
@@ -40,6 +40,9 @@ namespace Terena.Services.Database
         public ICollection<Booking>? Bookings { get; set; }
         public ICollection<Review>? Reviews { get; set; }
         public ICollection<UserFavoriteVenue>? FavoritedBy { get; set; }
+
+        public bool IsDeleted { get; set; }
+        public DateTime? DeleteTime { get; set; }
     }
 
     public class VenueAmenity

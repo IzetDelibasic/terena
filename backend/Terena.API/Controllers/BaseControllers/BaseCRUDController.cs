@@ -32,9 +32,9 @@ public class BaseCRUDController<TModel, TSearch, TInsert, TUpdate> : BaseControl
     }
 
     [HttpDelete("{id}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public virtual void Delete(int id)
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public virtual TModel Delete(int id)
     {
-        _service.Delete(id);
+        return _service.Delete(id);
     }
 }

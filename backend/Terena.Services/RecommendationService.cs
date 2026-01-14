@@ -35,6 +35,7 @@ public class RecommendationService : IRecommendationService
         var userPreferences = BuildUserPreferenceProfile(userBookings, userFavorites, userReviews);
 
         var allVenues = await _context.Venues
+            .Where(v => !v.IsDeleted)
             .Include(v => v.Reviews)
             .Include(v => v.CancellationPolicy)
             .Include(v => v.Discount)

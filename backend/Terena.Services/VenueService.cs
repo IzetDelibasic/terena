@@ -58,7 +58,7 @@ public class VenueService : BaseCRUDService<VenueDTO, VenueSearchObject, Venue, 
             .Include(v => v.Reviews)
             .Include(v => v.CancellationPolicy)
             .Include(v => v.Discount)
-            .FirstOrDefault(v => v.Id == id);
+            .FirstOrDefault(v => v.Id == id && !v.IsDeleted);
 
         if (entity == null)
             return null;
@@ -71,7 +71,7 @@ public class VenueService : BaseCRUDService<VenueDTO, VenueSearchObject, Venue, 
         var entity = Context.Set<Venue>()
             .Include(v => v.CancellationPolicy)
             .Include(v => v.Discount)
-            .FirstOrDefault(v => v.Id == id);
+            .FirstOrDefault(v => v.Id == id && !v.IsDeleted);
 
         if (entity == null)
         {
@@ -89,6 +89,8 @@ public class VenueService : BaseCRUDService<VenueDTO, VenueSearchObject, Venue, 
 
     public override IQueryable<Venue> AddFilter(VenueSearchObject search, IQueryable<Venue> query)
     {
+        query = query.Where(x => !x.IsDeleted);
+
         if (!string.IsNullOrEmpty(search?.SearchTerm))
         {
             var term = search.SearchTerm;
@@ -101,16 +103,16 @@ public class VenueService : BaseCRUDService<VenueDTO, VenueSearchObject, Venue, 
 
         if (!string.IsNullOrEmpty(search?.SportType))
             query = query.Where(x => x.SportType == search.SportType);
-        
+
         if (!string.IsNullOrEmpty(search?.Location))
             query = query.Where(x => x.Location == search.Location);
-        
+
         if (!string.IsNullOrEmpty(search?.SurfaceType))
             query = query.Where(x => x.SurfaceType == search.SurfaceType);
-        
+
         if (search?.MinPrice.HasValue == true)
             query = query.Where(x => x.PricePerHour >= search.MinPrice.Value);
-        
+
         if (search?.MaxPrice.HasValue == true)
             query = query.Where(x => x.PricePerHour <= search.MaxPrice.Value);
 

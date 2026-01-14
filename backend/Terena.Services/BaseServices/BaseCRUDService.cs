@@ -60,7 +60,7 @@ public abstract class BaseCRUDService<TModel, TSearch, TDbEntity, TInsert, TUpda
         return entity.Adapt<TModel>();
     }
 
-    public virtual void Delete(int id)
+    public virtual TModel Delete(int id)
     {
         var entity = Context.Set<TDbEntity>().Find(id);
 
@@ -90,6 +90,8 @@ public abstract class BaseCRUDService<TModel, TSearch, TDbEntity, TInsert, TUpda
         Context.SaveChanges();
 
         AfterDelete(id, entity);
+
+        return entity.Adapt<TModel>();
     }
 
     public virtual void BeforeInsert(TInsert request, TDbEntity entity) { }
