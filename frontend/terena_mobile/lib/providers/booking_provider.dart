@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/booking.dart';
+import '../utils/config.dart';
 
 class BookingProvider {
-  static const String baseUrl = "http://10.0.2.2:5152/api";
+  static String get baseUrl => Config.apiBaseUrl;
 
   Future<Map<String, dynamic>?> createPaymentIntent(
     double amount,

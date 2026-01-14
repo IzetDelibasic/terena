@@ -14,11 +14,11 @@ public class RabbitMQProducer : IRabbitMQProducer
     {
         var factory = new ConnectionFactory
         {
-            HostName = "localhost",
-            Port = 5672,
-            UserName = "guest",
-            Password = "guest",
-            VirtualHost = "/"
+            HostName = Environment.GetEnvironmentVariable("RABBITMQ_HOST") ?? "localhost",
+            Port = int.Parse(Environment.GetEnvironmentVariable("RABBITMQ_PORT") ?? "5672"),
+            UserName = Environment.GetEnvironmentVariable("RABBITMQ_USERNAME") ?? "guest",
+            Password = Environment.GetEnvironmentVariable("RABBITMQ_PASSWORD") ?? "guest",
+            VirtualHost = Environment.GetEnvironmentVariable("RABBITMQ_VIRTUAL_HOST") ?? "/"
         };
 
         try

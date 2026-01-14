@@ -4,13 +4,13 @@ import '../models/venue.dart';
 import '../utils/config.dart';
 
 class RecommendationProvider {
-  static const String _baseUrl = Config.apiBaseUrl;
+  static String get baseUrl => Config.apiBaseUrl;
 
   Future<List<Venue>> getRecommendations(int userId, {int count = 10}) async {
     try {
       final response = await http.get(
         Uri.parse(
-          '$_baseUrl/Recommendation/GetRecommendations/$userId?count=$count',
+          '$baseUrl/Recommendation/GetRecommendations/$userId?count=$count',
         ),
       );
 

@@ -3,9 +3,10 @@ import 'package:http/http.dart' as http;
 import 'package:terena_admin/models/user.dart';
 import 'package:terena_admin/providers/base_provider.dart';
 import 'package:terena_admin/providers/helper_providers/auth_provider.dart';
+import 'package:terena_admin/utils/config.dart';
 
 class UserProvider extends BaseProvider<User> {
-  static const String baseUrl = "http://localhost:5152/api";
+  static String get baseUrl => Config.apiBaseUrl;
 
   UserProvider() : super("User");
 

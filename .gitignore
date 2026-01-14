@@ -51,6 +51,13 @@ Thumbs.db
 coverage/
 *.lcov
 
+# Environment variables (secrets)
+.env
+!.env.example
+
+# Docker
+docker-compose.override.yml
+
 # Exceptions for Flutter templates
 !**/ios/.gitignore
 !**/android/.gitignore

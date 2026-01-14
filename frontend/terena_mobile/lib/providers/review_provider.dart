@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/review.dart';
+import '../utils/config.dart';
 
 class ReviewProvider {
-  final String baseUrl = 'http://10.0.2.2:5152/api/Review';
+  String get baseUrl => '${Config.apiBaseUrl}/Review';
 
   Future<List<Review>> getReviews({int? venueId, int? userId}) async {
     try {

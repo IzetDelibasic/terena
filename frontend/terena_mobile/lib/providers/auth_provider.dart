@@ -3,9 +3,10 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
+import '../utils/config.dart';
 
 class AuthProvider extends ChangeNotifier {
-  static const String baseUrl = "http://10.0.2.2:5152/api";
+  static String get baseUrl => Config.apiBaseUrl;
   User? _currentUser;
   String? _token;
 
@@ -79,7 +80,7 @@ class AuthProvider extends ChangeNotifier {
         "username": username,
         "password": password,
         "email": email,
-        "phone": phoneNumber,
+        "phoneNumber": phoneNumber,
         "country": country,
         "address": address,
         "role": 1,

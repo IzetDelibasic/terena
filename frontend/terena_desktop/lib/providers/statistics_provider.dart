@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:terena_admin/utils/config.dart';
 
 class StatisticsProvider {
-  static const String _baseUrl = "http://localhost:5152/api/Statistics";
+  static String get _baseUrl => '${Config.apiBaseUrl}/Statistics';
 
   Map<String, String> createHeaders() {
     return {"Content-Type": "application/json"};

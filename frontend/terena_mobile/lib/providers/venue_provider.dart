@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/venue.dart';
+import '../utils/config.dart';
 
 class VenueProvider {
-  static const String baseUrl = "http://10.0.2.2:5152/api";
+  static String get baseUrl => Config.apiBaseUrl;
 
   Future<List<Venue>> getVenues({String? sportType}) async {
     try {

@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:terena_admin/models/booking.dart';
 import 'package:terena_admin/models/search_result.dart';
 import 'package:terena_admin/providers/base_provider.dart';
+import 'package:terena_admin/utils/config.dart';
 
 class BookingProvider extends BaseProvider<Booking> {
   BookingProvider() : super("Booking");
@@ -14,7 +15,7 @@ class BookingProvider extends BaseProvider<Booking> {
 
   @override
   Future<SearchResult<Booking>> get({Map<String, dynamic>? filter}) async {
-    var url = "http://localhost:5152/api/Booking/admin/all";
+    var url = "${Config.apiBaseUrl}/Booking/admin/all";
 
     if (filter != null) {
       var queryString = getQueryString(filter);
@@ -43,7 +44,7 @@ class BookingProvider extends BaseProvider<Booking> {
   }
 
   Future<Booking> approveBooking(int bookingId) async {
-    var url = "http://localhost:5152/api/Booking/$bookingId/admin/confirm";
+    var url = "${Config.apiBaseUrl}/Booking/$bookingId/admin/confirm";
     var uri = Uri.parse(url);
     var headers = createHeaders();
 
@@ -66,7 +67,7 @@ class BookingProvider extends BaseProvider<Booking> {
   }
 
   Future<Booking> rejectBooking(int bookingId, String reason) async {
-    var url = "http://localhost:5152/api/Booking/$bookingId/admin/reject";
+    var url = "${Config.apiBaseUrl}/Booking/$bookingId/admin/reject";
     var uri = Uri.parse(url);
     var headers = createHeaders();
 
@@ -90,7 +91,7 @@ class BookingProvider extends BaseProvider<Booking> {
   }
 
   Future<Booking> cancelBooking(int bookingId, String reason) async {
-    var url = "http://localhost:5152/api/Booking/$bookingId/cancel";
+    var url = "${Config.apiBaseUrl}/Booking/$bookingId/cancel";
     var uri = Uri.parse(url);
     var headers = createHeaders();
 
@@ -114,7 +115,7 @@ class BookingProvider extends BaseProvider<Booking> {
   }
 
   Future<Booking> refundBooking(int bookingId, {double? refundAmount}) async {
-    var url = "http://localhost:5152/api/Booking/$bookingId/refund";
+    var url = "${Config.apiBaseUrl}/Booking/$bookingId/refund";
     var uri = Uri.parse(url);
     var headers = createHeaders();
 

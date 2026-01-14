@@ -2,9 +2,10 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/venue.dart';
+import '../utils/config.dart';
 
 class FavoriteProvider extends ChangeNotifier {
-  static const String baseUrl = "http://10.0.2.2:5152/api";
+  static String get baseUrl => Config.apiBaseUrl;
 
   List<Venue> _favorites = [];
   bool _isLoading = false;

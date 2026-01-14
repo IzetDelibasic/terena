@@ -3,17 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:terena_admin/models/search_result.dart';
 import 'package:terena_admin/providers/helper_providers/auth_provider.dart';
+import 'package:terena_admin/utils/config.dart';
 
 abstract class BaseProvider<T> with ChangeNotifier {
-  static String? _baseUrl;
+  static String get _baseUrl => Config.apiBaseUrl;
   final String _endpoint;
 
-  BaseProvider(this._endpoint) {
-    _baseUrl = const String.fromEnvironment(
-      "baseUrl",
-      defaultValue: "http://localhost:5152/api",
-    );
-  }
+  BaseProvider(this._endpoint);
 
   Future<SearchResult<T>> get({Map<String, dynamic>? filter}) async {
     var url = "$_baseUrl/$_endpoint";
