@@ -42,11 +42,6 @@ class _VenueAddScreenState extends State<VenueAddScreen> {
 
   void _loadVenueData() {
     final venue = widget.venue!;
-    print('Loading venue data:');
-    print('CancellationPolicy: ${venue.cancellationPolicy}');
-    print('CancellationPolicy Fee: ${venue.cancellationPolicy?.fee}');
-    print('Discount: ${venue.discount}');
-    print('Discount Percentage: ${venue.discount?.percentage}');
 
     _formData.addAll({
       'name': venue.name,
@@ -70,11 +65,6 @@ class _VenueAddScreenState extends State<VenueAddScreen> {
       'cancellationFeePercentage': venue.cancellationPolicy?.fee?.toString(),
       'discountPercentage': venue.discount?.percentage?.toString(),
     });
-
-    print(
-      'FormData cancellationFeePercentage: ${_formData['cancellationFeePercentage']}',
-    );
-    print('FormData discountPercentage: ${_formData['discountPercentage']}');
   }
 
   bool get _isStepComplete {
@@ -856,11 +846,7 @@ class _VenueAddScreenState extends State<VenueAddScreen> {
           _formData['cancellationFeePercentage']?.toString() ?? '0',
         );
         if (fee != null && fee > 0) {
-          request['cancellationPolicy'] = {
-            'freeUntil':
-                DateTime.now().add(const Duration(hours: 24)).toIso8601String(),
-            'fee': fee,
-          };
+          request['cancellationPolicy'] = {'fee': fee};
         }
       }
 

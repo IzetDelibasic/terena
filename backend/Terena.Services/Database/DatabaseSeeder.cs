@@ -72,7 +72,7 @@ public class DatabaseSeeder
             Location = "Mostar",
             Address = "Bulevar bb, Mostar 88000",
             SportType = "Football",
-            SurfaceType = "Grass",
+            SurfaceType = "Artificial Turf",
             Description = "Professional football stadium with top-quality grass and excellent facilities.",
             PricePerHour = 45.00m,
             AvailableSlots = 18,
@@ -94,7 +94,6 @@ public class DatabaseSeeder
         var cancellation1 = new CancellationPolicy
         {
             VenueId = venue1.Id,
-            FreeUntil = DateTime.Now.AddDays(30),
             Fee = 50.0m
         };
         var discount1 = new Discount
@@ -109,25 +108,25 @@ public class DatabaseSeeder
 
         var venue2 = new Venue
         {
-            Name = "Elite Padel Club",
-            Location = "Banja Luka",
-            Address = "Banja Luka Centar, 78000",
-            SportType = "Padel",
-            SurfaceType = "Artificial Grass",
-            Description = "Premium padel courts with professional equipment and coaching available.",
-            PricePerHour = 50.00m,
-            AvailableSlots = 12,
-            ContactPhone = "+38751987654",
-            ContactEmail = "info@elitepadel.ba",
-            VenueImageUrl = "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800",
+            Name = "Arena Grbavica",
+            Location = "Sarajevo",
+            Address = "Grbavica, Sarajevo 71000",
+            SportType = "Football",
+            SurfaceType = "Artificial Turf",
+            Description = "Premium 5-a-side and 7-a-side football venue in the heart of Sarajevo.",
+            PricePerHour = 40.00m,
+            AvailableSlots = 20,
+            ContactPhone = "+38733789456",
+            ContactEmail = "info@arenagrbavica.ba",
+            VenueImageUrl = "https://images.unsplash.com/photo-1489944440615-453fc2b6a9a9?w=800",
             HasParking = true,
             HasShowers = true,
             HasLighting = true,
             HasChangingRooms = true,
             HasEquipmentRental = true,
             HasCafeBar = true,
-            HasWaterFountain = false,
-            HasSeatingArea = true
+            HasWaterFountain = true,
+            HasSeatingArea = false
         };
         _context.Venues.Add(venue2);
         await _context.SaveChangesAsync();
@@ -135,14 +134,13 @@ public class DatabaseSeeder
         var cancellation2 = new CancellationPolicy
         {
             VenueId = venue2.Id,
-            FreeUntil = DateTime.Now.AddDays(30),
-            Fee = 50.0m
+            Fee = 30.0m
         };
         var discount2 = new Discount
         {
             VenueId = venue2.Id,
             Percentage = 15.0m,
-            ForBookings = 3
+            ForBookings = 4
         };
         _context.CancellationPolicies.Add(cancellation2);
         _context.Discounts.Add(discount2);
@@ -150,7 +148,7 @@ public class DatabaseSeeder
 
         var venue3 = new Venue
         {
-            Name = "Skyline Court",
+            Name = "Skyline Basketball Arena",
             Location = "Sarajevo",
             Address = "Ilidza, Sarajevo 71000",
             SportType = "Basketball",
@@ -159,13 +157,13 @@ public class DatabaseSeeder
             PricePerHour = 35.00m,
             AvailableSlots = 15,
             ContactPhone = "+38733456789",
-            ContactEmail = "info@skylinecourt.ba",
+            ContactEmail = "info@skylinearena.ba",
             VenueImageUrl = "https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800",
-            HasParking = false,
+            HasParking = true,
             HasShowers = true,
             HasLighting = true,
             HasChangingRooms = true,
-            HasEquipmentRental = false,
+            HasEquipmentRental = true,
             HasCafeBar = false,
             HasWaterFountain = true,
             HasSeatingArea = true
@@ -176,94 +174,129 @@ public class DatabaseSeeder
         var cancellation3 = new CancellationPolicy
         {
             VenueId = venue3.Id,
-            FreeUntil = DateTime.Now.AddDays(30),
-            Fee = 30.0m
+            Fee = 25.0m
+        };
+        var discount3 = new Discount
+        {
+            VenueId = venue3.Id,
+            Percentage = 20.0m,
+            ForBookings = 5
         };
         _context.CancellationPolicies.Add(cancellation3);
+        _context.Discounts.Add(discount3);
         await _context.SaveChangesAsync();
 
         var venue4 = new Venue
         {
-            Name = "Beach Volley Paradise",
-            Location = "Neum",
-            Address = "Obala bb, Neum 88390",
-            SportType = "Volleyball",
-            SurfaceType = "Sand",
-            Description = "Beautiful beach volleyball courts right by the sea.",
+            Name = "Hoops Center Banja Luka",
+            Location = "Banja Luka",
+            Address = "Centar, Banja Luka 78000",
+            SportType = "Basketball",
+            SurfaceType = "Synthetic",
+            Description = "Indoor basketball courts with professional equipment and coaching available.",
             PricePerHour = 30.00m,
-            AvailableSlots = 10,
-            ContactPhone = "+38736321654",
-            ContactEmail = "info@beachvolley.ba",
-            VenueImageUrl = "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=800",
-            HasParking = true,
-            HasShowers = true,
-            HasLighting = false,
-            HasChangingRooms = true,
-            HasEquipmentRental = true,
-            HasCafeBar = true,
-            HasWaterFountain = true,
-            HasSeatingArea = false
-        };
-        _context.Venues.Add(venue4);
-        await _context.SaveChangesAsync();
-
-        var venue5 = new Venue
-        {
-            Name = "Central 5-a-Side",
-            Location = "Sarajevo",
-            Address = "Grbavica, Sarajevo 71000",
-            SportType = "Football",
-            SurfaceType = "Artificial Turf",
-            Description = "Perfect 5-a-side football venue in the heart of the city.",
-            PricePerHour = 40.00m,
-            AvailableSlots = 16,
-            ContactPhone = "+38733789456",
-            ContactEmail = "info@central5.ba",
-            VenueImageUrl = "https://images.unsplash.com/photo-1489944440615-453fc2b6a9a9?w=800",
+            AvailableSlots = 12,
+            ContactPhone = "+38751654321",
+            ContactEmail = "info@hoopscenter.ba",
+            VenueImageUrl = "https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800",
             HasParking = true,
             HasShowers = true,
             HasLighting = true,
             HasChangingRooms = true,
             HasEquipmentRental = false,
-            HasCafeBar = false,
+            HasCafeBar = true,
             HasWaterFountain = true,
-            HasSeatingArea = false
+            HasSeatingArea = true
+        };
+        _context.Venues.Add(venue4);
+        await _context.SaveChangesAsync();
+
+        var cancellation4 = new CancellationPolicy
+        {
+            VenueId = venue4.Id,
+            Fee = 40.0m
+        };
+        _context.CancellationPolicies.Add(cancellation4);
+        await _context.SaveChangesAsync();
+
+        var venue5 = new Venue
+        {
+            Name = "Grand Slam Tennis Club",
+            Location = "Mostar",
+            Address = "Sjeverni Logor, Mostar 88000",
+            SportType = "Tennis",
+            SurfaceType = "Clay",
+            Description = "Professional tennis courts with clay and hard surfaces. Perfect for all skill levels.",
+            PricePerHour = 25.00m,
+            AvailableSlots = 16,
+            ContactPhone = "+38736654321",
+            ContactEmail = "info@grandslamtennis.ba",
+            VenueImageUrl = "https://images.unsplash.com/photo-1622163642998-1ea32b0bbc67?w=800",
+            HasParking = true,
+            HasShowers = true,
+            HasLighting = true,
+            HasChangingRooms = true,
+            HasEquipmentRental = true,
+            HasCafeBar = true,
+            HasWaterFountain = true,
+            HasSeatingArea = true
         };
         _context.Venues.Add(venue5);
         await _context.SaveChangesAsync();
 
+        var cancellation5 = new CancellationPolicy
+        {
+            VenueId = venue5.Id,
+            Fee = 20.0m
+        };
         var discount5 = new Discount
         {
             VenueId = venue5.Id,
-            Percentage = 10.0m,
+            Percentage = 12.0m,
             ForBookings = 3
         };
+        _context.CancellationPolicies.Add(cancellation5);
         _context.Discounts.Add(discount5);
         await _context.SaveChangesAsync();
 
         var venue6 = new Venue
         {
-            Name = "Grand Slam Tennis",
-            Location = "Mostar",
-            Address = "Sjeverni Logor, Mostar 88000",
+            Name = "Ace Tennis Academy",
+            Location = "Sarajevo",
+            Address = "Otoka, Sarajevo 71000",
             SportType = "Tennis",
-            SurfaceType = "Clay",
-            Description = "Professional tennis courts with clay and hard surfaces available.",
-            PricePerHour = 25.00m,
+            SurfaceType = "Hard Court",
+            Description = "State-of-the-art tennis facility with professional coaching and modern amenities.",
+            PricePerHour = 28.00m,
             AvailableSlots = 14,
-            ContactPhone = "+38736654321",
-            ContactEmail = "info@grandslam.ba",
-            VenueImageUrl = "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800",
+            ContactPhone = "+38733987654",
+            ContactEmail = "info@acetennisacademy.ba",
+            VenueImageUrl = "https://images.unsplash.com/photo-1622163642998-1ea32b0bbc67?w=800",
             HasParking = true,
-            HasShowers = false,
-            HasLighting = false,
+            HasShowers = true,
+            HasLighting = true,
             HasChangingRooms = true,
             HasEquipmentRental = true,
             HasCafeBar = false,
-            HasWaterFountain = false,
+            HasWaterFountain = true,
             HasSeatingArea = true
         };
         _context.Venues.Add(venue6);
+        await _context.SaveChangesAsync();
+
+        var cancellation6 = new CancellationPolicy
+        {
+            VenueId = venue6.Id,
+            Fee = 35.0m
+        };
+        var discount6 = new Discount
+        {
+            VenueId = venue6.Id,
+            Percentage = 8.0m,
+            ForBookings = 2
+        };
+        _context.CancellationPolicies.Add(cancellation6);
+        _context.Discounts.Add(discount6);
         await _context.SaveChangesAsync();
 
         var venues = new List<Venue> { venue1, venue2, venue3, venue4, venue5, venue6 };
@@ -271,7 +304,7 @@ public class DatabaseSeeder
         var courts = new List<Court>();
         foreach (var venue in venues)
         {
-            if (venue.SportType == "Football" || venue.SportType == "Mini Football")
+            if (venue.SportType == "Football")
             {
                 courts.Add(new Court
                 {
@@ -300,13 +333,21 @@ public class DatabaseSeeder
                     MaxCapacity = "10",
                     IsAvailable = true
                 });
+                courts.Add(new Court
+                {
+                    VenueId = venue.Id,
+                    Name = "Court 2",
+                    CourtType = "Full Court",
+                    MaxCapacity = "10",
+                    IsAvailable = true
+                });
             }
             else if (venue.SportType == "Tennis")
             {
                 courts.Add(new Court
                 {
                     VenueId = venue.Id,
-                    Name = "Court 1 - Clay",
+                    Name = "Court 1",
                     CourtType = "Singles/Doubles",
                     MaxCapacity = "4",
                     IsAvailable = true
@@ -314,39 +355,17 @@ public class DatabaseSeeder
                 courts.Add(new Court
                 {
                     VenueId = venue.Id,
-                    Name = "Court 2 - Hard",
+                    Name = "Court 2",
                     CourtType = "Singles/Doubles",
                     MaxCapacity = "4",
                     IsAvailable = true
                 });
-            }
-            else if (venue.SportType == "Padel")
-            {
                 courts.Add(new Court
                 {
                     VenueId = venue.Id,
-                    Name = "Padel Court 1",
-                    CourtType = "Doubles",
+                    Name = "Court 3",
+                    CourtType = "Singles/Doubles",
                     MaxCapacity = "4",
-                    IsAvailable = true
-                });
-                courts.Add(new Court
-                {
-                    VenueId = venue.Id,
-                    Name = "Padel Court 2",
-                    CourtType = "Doubles",
-                    MaxCapacity = "4",
-                    IsAvailable = true
-                });
-            }
-            else if (venue.SportType == "Volleyball")
-            {
-                courts.Add(new Court
-                {
-                    VenueId = venue.Id,
-                    Name = "Beach Court 1",
-                    CourtType = "2v2/4v4",
-                    MaxCapacity = "8",
                     IsAvailable = true
                 });
             }
@@ -360,45 +379,45 @@ public class DatabaseSeeder
             {
                 UserId = users[0].Id,
                 VenueId = venue1.Id,
-                CourtId = courts[0].Id,
+                CourtId = courts.FirstOrDefault(c => c.VenueId == venue1.Id)?.Id,
                 BookingNumber = "BK2026011214510257779",
-                BookingDate = DateTime.Parse("2026-01-12"),
-                StartTime = DateTime.Parse("2026-01-12 16:00:00"),
-                EndTime = DateTime.Parse("2026-01-12 17:00:00"),
-                Duration = 1,
+                BookingDate = DateTime.Parse("2026-01-15"),
+                StartTime = DateTime.Parse("2026-01-15 18:00:00"),
+                EndTime = DateTime.Parse("2026-01-15 21:00:00"),
+                Duration = 3,
                 NumberOfPlayers = 10,
                 PricePerHour = 45.00m,
-                SubtotalPrice = 45.00m,
-                DiscountAmount = 0,
-                DiscountPercentage = 0,
-                ServiceFee = 5.00m,
-                TotalPrice = 50.00m,
-                Status = BookingStatus.Cancelled,
+                SubtotalPrice = 135.00m,
+                DiscountAmount = 13.50m,
+                DiscountPercentage = 10,
+                ServiceFee = 0,
+                TotalPrice = 121.50m,
+                Status = BookingStatus.Confirmed,
                 PaymentStatus = PaymentStatus.Paid,
-                CreatedAt = DateTime.Parse("2026-01-11"),
-                PaidAt = DateTime.Parse("2026-01-11"),
-                CancelledAt = DateTime.Parse("2026-01-12")
+                CreatedAt = DateTime.Parse("2026-01-12"),
+                PaidAt = DateTime.Parse("2026-01-12"),
+                ConfirmedAt = DateTime.Parse("2026-01-12")
             },
             new Booking
             {
-                UserId = users[0].Id,
-                VenueId = venue2.Id,
-                CourtId = courts.FirstOrDefault(c => c.VenueId == venue2.Id)?.Id,
+                UserId = users[2].Id,
+                VenueId = venue3.Id,
+                CourtId = courts.FirstOrDefault(c => c.VenueId == venue3.Id)?.Id,
                 BookingNumber = "BK2026011214504102052",
-                BookingDate = DateTime.Parse("2026-01-12"),
-                StartTime = DateTime.Parse("2026-01-12 19:00:00"),
-                EndTime = DateTime.Parse("2026-01-12 20:00:00"),
+                BookingDate = DateTime.Parse("2026-01-16"),
+                StartTime = DateTime.Parse("2026-01-16 19:00:00"),
+                EndTime = DateTime.Parse("2026-01-16 20:00:00"),
                 Duration = 1,
-                NumberOfPlayers = 4,
-                PricePerHour = 50.00m,
-                SubtotalPrice = 50.00m,
+                NumberOfPlayers = 8,
+                PricePerHour = 35.00m,
+                SubtotalPrice = 35.00m,
                 DiscountAmount = 0,
                 DiscountPercentage = 0,
                 ServiceFee = 0,
-                TotalPrice = 50.00m,
+                TotalPrice = 35.00m,
                 Status = BookingStatus.Pending,
                 PaymentStatus = PaymentStatus.Pending,
-                CreatedAt = DateTime.Parse("2026-01-11")
+                CreatedAt = DateTime.Parse("2026-01-13")
             },
             new Booking
             {
@@ -406,131 +425,22 @@ public class DatabaseSeeder
                 VenueId = venue5.Id,
                 CourtId = courts.FirstOrDefault(c => c.VenueId == venue5.Id)?.Id,
                 BookingNumber = "BK2026011213135761186",
-                BookingDate = DateTime.Parse("2026-01-12"),
-                StartTime = DateTime.Parse("2026-01-12 18:00:00"),
-                EndTime = DateTime.Parse("2026-01-12 19:00:00"),
-                Duration = 1,
-                NumberOfPlayers = 10,
-                PricePerHour = 40.00m,
-                SubtotalPrice = 40.00m,
-                DiscountAmount = 0,
-                DiscountPercentage = 0,
-                ServiceFee = 0,
-                TotalPrice = 15.00m,
-                Status = BookingStatus.Cancelled,
-                PaymentStatus = PaymentStatus.Paid,
-                CreatedAt = DateTime.Parse("2026-01-10"),
-                PaidAt = DateTime.Parse("2026-01-10"),
-                CancelledAt = DateTime.Parse("2026-01-11")
-            },
-            new Booking
-            {
-                UserId = users[0].Id,
-                VenueId = venue1.Id,
-                CourtId = courts[1].Id,
-                BookingNumber = "BK2026011211279575",
-                BookingDate = DateTime.Parse("2026-01-12"),
-                StartTime = DateTime.Parse("2026-01-12 18:00:00"),
-                EndTime = DateTime.Parse("2026-01-12 20:00:00"),
-                Duration = 2,
-                NumberOfPlayers = 10,
-                PricePerHour = 45.00m,
-                SubtotalPrice = 90.00m,
-                DiscountAmount = 0,
-                DiscountPercentage = 0,
-                ServiceFee = 0,
-                TotalPrice = 45.00m,
-                Status = BookingStatus.Cancelled,
-                PaymentStatus = PaymentStatus.Paid,
-                CreatedAt = DateTime.Parse("2026-01-10"),
-                PaidAt = DateTime.Parse("2026-01-10"),
-                CancelledAt = DateTime.Parse("2026-01-11")
-            },
-            new Booking
-            {
-                UserId = users[0].Id,
-                VenueId = venue2.Id,
-                CourtId = courts.FirstOrDefault(c => c.VenueId == venue2.Id)?.Id,
-                BookingNumber = "BK2026011212371046570",
-                BookingDate = DateTime.Parse("2026-01-12"),
-                StartTime = DateTime.Parse("2026-01-12 17:00:00"),
-                EndTime = DateTime.Parse("2026-01-12 18:00:00"),
-                Duration = 1,
+                BookingDate = DateTime.Parse("2026-01-14"),
+                StartTime = DateTime.Parse("2026-01-14 17:00:00"),
+                EndTime = DateTime.Parse("2026-01-14 20:00:00"),
+                Duration = 3,
                 NumberOfPlayers = 4,
-                PricePerHour = 50.00m,
-                SubtotalPrice = 50.00m,
-                DiscountAmount = 0,
-                DiscountPercentage = 0,
+                PricePerHour = 25.00m,
+                SubtotalPrice = 75.00m,
+                DiscountAmount = 9.00m,
+                DiscountPercentage = 12,
                 ServiceFee = 0,
-                TotalPrice = 50.00m,
+                TotalPrice = 66.00m,
                 Status = BookingStatus.Confirmed,
                 PaymentStatus = PaymentStatus.Paid,
-                CreatedAt = DateTime.Parse("2026-01-10"),
-                ConfirmedAt = DateTime.Parse("2026-01-10"),
-                PaidAt = DateTime.Parse("2026-01-10")
-            },
-            new Booking
-            {
-                UserId = users[0].Id,
-                VenueId = venue1.Id,
-                CourtId = courts[0].Id,
-                BookingNumber = "BK2026011123051312337",
-                BookingDate = DateTime.Parse("2026-01-12"),
-                StartTime = DateTime.Parse("2026-01-12 11:00:00"),
-                EndTime = DateTime.Parse("2026-01-12 12:00:00"),
-                Duration = 1,
-                NumberOfPlayers = 10,
-                PricePerHour = 45.00m,
-                SubtotalPrice = 45.00m,
-                DiscountAmount = 0,
-                DiscountPercentage = 0,
-                ServiceFee = 0,
-                TotalPrice = 45.00m,
-                Status = BookingStatus.Pending,
-                PaymentStatus = PaymentStatus.Pending,
-                CreatedAt = DateTime.Parse("2026-01-10")
-            },
-            new Booking
-            {
-                UserId = users[0].Id,
-                VenueId = venue2.Id,
-                CourtId = courts.FirstOrDefault(c => c.VenueId == venue2.Id)?.Id,
-                BookingNumber = "BK2026011123052295568",
-                BookingDate = DateTime.Parse("2026-01-13"),
-                StartTime = DateTime.Parse("2026-01-13 11:00:00"),
-                EndTime = DateTime.Parse("2026-01-13 12:00:00"),
-                Duration = 1,
-                NumberOfPlayers = 4,
-                PricePerHour = 50.00m,
-                SubtotalPrice = 50.00m,
-                DiscountAmount = 0,
-                DiscountPercentage = 0,
-                ServiceFee = 0,
-                TotalPrice = 50.00m,
-                Status = BookingStatus.Pending,
-                PaymentStatus = PaymentStatus.Pending,
-                CreatedAt = DateTime.Parse("2026-01-10")
-            },
-            new Booking
-            {
-                UserId = users[0].Id,
-                VenueId = venue2.Id,
-                CourtId = courts.FirstOrDefault(c => c.VenueId == venue2.Id)?.Id,
-                BookingNumber = "BK2026011125544487023",
-                BookingDate = DateTime.Parse("2026-01-11"),
-                StartTime = DateTime.Parse("2026-01-11 12:00:00"),
-                EndTime = DateTime.Parse("2026-01-11 13:00:00"),
-                Duration = 1,
-                NumberOfPlayers = 4,
-                PricePerHour = 50.00m,
-                SubtotalPrice = 50.00m,
-                DiscountAmount = 0,
-                DiscountPercentage = 0,
-                ServiceFee = 0,
-                TotalPrice = 50.00m,
-                Status = BookingStatus.Pending,
-                PaymentStatus = PaymentStatus.Pending,
-                CreatedAt = DateTime.Parse("2026-01-10")
+                CreatedAt = DateTime.Parse("2026-01-11"),
+                PaidAt = DateTime.Parse("2026-01-11"),
+                ConfirmedAt = DateTime.Parse("2026-01-11")
             }
         };
         _context.Bookings.AddRange(bookings);
@@ -543,7 +453,7 @@ public class DatabaseSeeder
                 UserId = users[0].Id,
                 VenueId = venue1.Id,
                 Rating = 5,
-                Comment = "Excellent venue! Great facilities and very well maintained.",
+                Comment = "Excellent football venue! Great facilities and very well maintained.",
                 CreatedAt = DateTime.Now.AddDays(-3)
             },
             new Review
@@ -551,7 +461,7 @@ public class DatabaseSeeder
                 UserId = users[2].Id,
                 VenueId = venue1.Id,
                 Rating = 5,
-                Comment = "Perfect for evening games. Lighting is great!",
+                Comment = "Perfect for evening games. Lighting is amazing!",
                 CreatedAt = DateTime.Now.AddDays(-8)
             },
             new Review
@@ -559,16 +469,40 @@ public class DatabaseSeeder
                 UserId = users[0].Id,
                 VenueId = venue2.Id,
                 Rating = 5,
-                Comment = "Best padel club in town! Professional service.",
+                Comment = "Best football venue in Sarajevo! Great atmosphere.",
                 CreatedAt = DateTime.Now.AddDays(-2)
             },
             new Review
             {
-                UserId = users[0].Id,
+                UserId = users[2].Id,
                 VenueId = venue3.Id,
-                Rating = 4,
-                Comment = "Good basketball court, could use better parking.",
+                Rating = 5,
+                Comment = "Amazing basketball court! Top-notch facilities.",
                 CreatedAt = DateTime.Now.AddDays(-4)
+            },
+            new Review
+            {
+                UserId = users[0].Id,
+                VenueId = venue4.Id,
+                Rating = 4,
+                Comment = "Good basketball court in Banja Luka. Nice staff.",
+                CreatedAt = DateTime.Now.AddDays(-6)
+            },
+            new Review
+            {
+                UserId = users[2].Id,
+                VenueId = venue5.Id,
+                Rating = 5,
+                Comment = "Best tennis club! Clay courts are excellent.",
+                CreatedAt = DateTime.Now.AddDays(-5)
+            },
+            new Review
+            {
+                UserId = users[0].Id,
+                VenueId = venue6.Id,
+                Rating = 5,
+                Comment = "Professional tennis academy. Highly recommended!",
+                CreatedAt = DateTime.Now.AddDays(-7)
             }
         };
         _context.Reviews.AddRange(reviews);

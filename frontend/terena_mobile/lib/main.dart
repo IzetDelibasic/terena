@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'providers/favorite_provider.dart';
+import 'providers/notification_provider.dart';
 import 'screens/login_screen.dart';
 
 void main() async {
@@ -22,7 +23,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => FavoriteProvider())],
+      providers: [
+        ChangeNotifierProvider(create: (_) => FavoriteProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
+      ],
       child: MaterialApp(
         title: 'Terena',
         debugShowCheckedModeBanner: false,

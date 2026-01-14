@@ -233,8 +233,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     if (value == null || value.trim().isEmpty) {
                       return 'Please enter a password';
                     }
-                    if (value.trim().length < 6) {
-                      return 'Password must be at least 6 characters';
+                    if (value.trim().length < 8) {
+                      return 'Password must be at least 8 characters';
                     }
                     return null;
                   },

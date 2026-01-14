@@ -16,28 +16,15 @@ class BookingProvider {
       Map<String, String> headers = {"Content-Type": "application/json"};
       var body = jsonEncode({"amount": amount, "description": description});
 
-      print('Creating payment intent...');
-      print('URL: $url');
-      print('Body: $body');
-
       var response = await http.post(uri, headers: headers, body: body);
-
-      print('Create payment intent - Status: ${response.statusCode}');
-      print('Create payment intent - Response: ${response.body}');
 
       if (response.statusCode == 200) {
         var responseData = jsonDecode(response.body);
-        print('Payment intent created successfully: $responseData');
         return responseData;
       } else {
-        print(
-          'Failed to create payment intent. Status: ${response.statusCode}',
-        );
-        print('Error response: ${response.body}');
         return null;
       }
     } catch (e) {
-      print('Error creating payment intent: $e');
       return null;
     }
   }
@@ -47,8 +34,6 @@ class BookingProvider {
       var url = "$baseUrl/Booking?UserId=$userId";
       var uri = Uri.parse(url);
       var response = await http.get(uri);
-
-      print('Get bookings - Status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         var data = jsonDecode(response.body);
@@ -66,7 +51,6 @@ class BookingProvider {
       }
       return [];
     } catch (e) {
-      print('Error fetching bookings: $e');
       return [];
     }
   }
@@ -79,16 +63,34 @@ class BookingProvider {
       var uri = Uri.parse(url);
       var response = await http.get(uri);
 
-      print('Get available slots - Status: ${response.statusCode}');
-
       if (response.statusCode == 200) {
         List<dynamic> data = jsonDecode(response.body);
         return data.map((slot) => slot.toString()).toList();
       }
       return [];
     } catch (e) {
-      print('Error fetching available slots: $e');
       return [];
+    }
+  }
+
+  Future<int> getMaxDurationForSlot(
+    int venueId,
+    DateTime date,
+    String timeSlot,
+  ) async {
+    try {
+      final dateStr = date.toIso8601String();
+      var url =
+          "$baseUrl/Booking/max-duration?venueId=$venueId&date=$dateStr&timeSlot=$timeSlot";
+      var uri = Uri.parse(url);
+      var response = await http.get(uri);
+
+      if (response.statusCode == 200) {
+        return int.parse(response.body);
+      }
+      return 1;
+    } catch (e) {
+      return 1;
     }
   }
 
@@ -124,13 +126,7 @@ class BookingProvider {
         "stripePaymentIntentId": stripePaymentIntentId,
       });
 
-      print('Create booking - URL: $url');
-      print('Create booking - Body: $body');
-
       var response = await http.post(uri, headers: headers, body: body);
-
-      print('Create booking - Status: ${response.statusCode}');
-      print('Create booking - Response: ${response.body}');
 
       if (response.statusCode == 200) {
         var data = jsonDecode(response.body);
@@ -138,7 +134,6 @@ class BookingProvider {
       }
       return null;
     } catch (e) {
-      print('Error creating booking: $e');
       return null;
     }
   }
@@ -153,11 +148,8 @@ class BookingProvider {
 
       var response = await http.post(uri, headers: headers, body: body);
 
-      print('Cancel booking - Status: ${response.statusCode}');
-
       return response.statusCode == 200;
     } catch (e) {
-      print('Error cancelling booking: $e');
       return false;
     }
   }

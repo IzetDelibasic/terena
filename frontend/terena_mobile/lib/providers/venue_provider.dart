@@ -18,8 +18,6 @@ class VenueProvider {
       if (response.statusCode == 200) {
         var data = jsonDecode(response.body);
 
-        print('Venue API Response: $data');
-
         List<dynamic> venueList;
         if (data is Map && data.containsKey('resultList')) {
           venueList = data['resultList'];
@@ -35,7 +33,6 @@ class VenueProvider {
       }
       return [];
     } catch (e) {
-      print('Error fetching venues: $e');
       return [];
     }
   }
@@ -44,11 +41,7 @@ class VenueProvider {
     try {
       var url = "$baseUrl/Venue/$id";
       var uri = Uri.parse(url);
-      print('Fetching venue details - URL: $url');
       var response = await http.get(uri);
-
-      print('Get venue - Status: ${response.statusCode}');
-      print('Get venue - Response: ${response.body}');
 
       if (response.statusCode == 200) {
         var data = jsonDecode(response.body);
@@ -56,7 +49,6 @@ class VenueProvider {
       }
       return null;
     } catch (e) {
-      print('Error fetching venue details: $e');
       return null;
     }
   }

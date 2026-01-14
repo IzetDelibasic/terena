@@ -38,5 +38,6 @@ namespace Terena.Models.Requests
         public decimal? DiscountPercentage { get; set; }
         
         public string? PaymentMethod { get; set; }
+        public string? StripePaymentIntentId { get; set; }
     }
 }

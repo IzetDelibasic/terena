@@ -10,6 +10,7 @@ class Venue {
   final String? sportType;
   final String? surfaceType;
   final String? description;
+  final int? availableSlots;
   final bool hasParking;
   final bool hasShowers;
   final bool hasLighting;
@@ -31,6 +32,7 @@ class Venue {
     this.sportType,
     this.surfaceType,
     this.description,
+    this.availableSlots,
     this.hasParking = false,
     this.hasShowers = false,
     this.hasLighting = false,
@@ -54,6 +56,7 @@ class Venue {
       sportType: json['sportType'],
       surfaceType: json['surfaceType'],
       description: json['description'],
+      availableSlots: json['availableSlots'],
       hasParking: json['hasParking'] ?? false,
       hasShowers: json['hasShowers'] ?? false,
       hasLighting: json['hasLighting'] ?? false,
@@ -82,6 +85,7 @@ class Venue {
       'sportType': sportType,
       'surfaceType': surfaceType,
       'description': description,
+      'availableSlots': availableSlots,
       'hasParking': hasParking,
       'hasShowers': hasShowers,
       'hasLighting': hasLighting,
@@ -115,20 +119,15 @@ class Discount {
 }
 
 class CancellationPolicy {
-  final DateTime? freeUntil;
   final double? fee;
 
-  CancellationPolicy({this.freeUntil, this.fee});
+  CancellationPolicy({this.fee});
 
   factory CancellationPolicy.fromJson(Map<String, dynamic> json) {
-    return CancellationPolicy(
-      freeUntil:
-          json['freeUntil'] != null ? DateTime.parse(json['freeUntil']) : null,
-      fee: json['fee']?.toDouble(),
-    );
+    return CancellationPolicy(fee: json['fee']?.toDouble());
   }
 
   Map<String, dynamic> toJson() {
-    return {'freeUntil': freeUntil?.toIso8601String(), 'fee': fee};
+    return {'fee': fee};
   }
 }

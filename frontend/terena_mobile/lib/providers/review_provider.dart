@@ -31,11 +31,9 @@ class ReviewProvider {
                 .toList();
         return reviews;
       } else {
-        print('Failed to load reviews: ${response.statusCode}');
         return [];
       }
     } catch (e) {
-      print('Error loading reviews: $e');
       return [];
     }
   }
@@ -60,12 +58,8 @@ class ReviewProvider {
         }),
       );
 
-      print('Create review - Status: ${response.statusCode}');
-      print('Create review - Response: ${response.body}');
-
       return response.statusCode == 200;
     } catch (e) {
-      print('Error creating review: $e');
       return false;
     }
   }
@@ -84,7 +78,6 @@ class ReviewProvider {
 
       return response.statusCode == 200;
     } catch (e) {
-      print('Error updating review: $e');
       return false;
     }
   }
@@ -94,7 +87,6 @@ class ReviewProvider {
       final response = await http.delete(Uri.parse('$baseUrl/$id'));
       return response.statusCode == 200;
     } catch (e) {
-      print('Error deleting review: $e');
       return false;
     }
   }

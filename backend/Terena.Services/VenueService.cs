@@ -24,6 +24,8 @@ public class VenueService : BaseCRUDService<VenueDTO, VenueSearchObject, Venue, 
     {
         var query = Context.Set<Venue>()
             .Include(v => v.Reviews)
+            .Include(v => v.CancellationPolicy)
+            .Include(v => v.Discount)
             .AsQueryable();
 
         query = AddFilter(search, query);
@@ -135,13 +137,11 @@ public class VenueService : BaseCRUDService<VenueDTO, VenueSearchObject, Venue, 
             {
                 entity.CancellationPolicy = new CancellationPolicy
                 {
-                    FreeUntil = request.CancellationPolicy.FreeUntil,
                     Fee = request.CancellationPolicy.Fee
                 };
             }
             else
             {
-                entity.CancellationPolicy.FreeUntil = request.CancellationPolicy.FreeUntil;
                 entity.CancellationPolicy.Fee = request.CancellationPolicy.Fee;
             }
         }

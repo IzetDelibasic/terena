@@ -9,6 +9,7 @@ import '../providers/favorite_provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/booking_provider.dart';
 import '../providers/review_provider.dart';
+import '../providers/notification_provider.dart';
 
 class VenueDetailsScreen extends StatefulWidget {
   final Venue venue;
@@ -37,6 +38,7 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
   String? _selectedTimeSlot;
   List<Review> _reviews = [];
   bool _isLoadingReviews = false;
+  int _maxDurationForSlot = 14;
 
   double get _averageRating {
     if (_reviews.isEmpty) return widget.venue.rating ?? 0.0;
@@ -54,9 +56,10 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
 
   double get _discount {
     final discountData = widget.venue.discount;
-    if (discountData != null && discountData.percentage != null) {
-      // Discount applies for bookings of 3+ hours
-      if (_duration >= 3) {
+    if (discountData != null &&
+        discountData.percentage != null &&
+        discountData.forBookings != null) {
+      if (_duration >= discountData.forBookings!) {
         return _totalPrice * (discountData.percentage! / 100);
       }
     }
@@ -72,7 +75,7 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
     if (cancellationData != null && cancellationData.fee != null) {
       return _finalPrice * (cancellationData.fee! / 100);
     }
-    return _finalPrice * 0.50;
+    return 0.0;
   }
 
   @override
@@ -93,8 +96,30 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
       _selectedDate,
     );
 
+    final now = DateTime.now();
+    final isToday =
+        _selectedDate.year == now.year &&
+        _selectedDate.month == now.month &&
+        _selectedDate.day == now.day;
+
+    List<String> filteredSlots = slots;
+    if (isToday) {
+      filteredSlots =
+          slots.where((slot) {
+            final parts = slot.split(':');
+            final slotHour = int.parse(parts[0]);
+            final slotMinute = int.parse(parts[1]);
+            final slotTime = TimeOfDay(hour: slotHour, minute: slotMinute);
+
+            final slotMinutes = slotTime.hour * 60 + slotTime.minute;
+            final currentMinutes = now.hour * 60 + now.minute;
+
+            return slotMinutes > currentMinutes;
+          }).toList();
+    }
+
     setState(() {
-      _availableSlots = slots;
+      _availableSlots = filteredSlots;
       _isLoadingSlots = false;
       if (_availableSlots.isNotEmpty && _selectedTimeSlot == null) {
         _selectedTimeSlot = _availableSlots.first;
@@ -103,6 +128,27 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
           hour: int.parse(parts[0]),
           minute: int.parse(parts[1]),
         );
+      }
+    });
+
+    if (_selectedTimeSlot != null) {
+      _loadMaxDuration();
+    }
+  }
+
+  Future<void> _loadMaxDuration() async {
+    if (_selectedTimeSlot == null) return;
+
+    final maxDuration = await _bookingProvider.getMaxDurationForSlot(
+      widget.venue.id,
+      _selectedDate,
+      _selectedTimeSlot!,
+    );
+
+    setState(() {
+      _maxDurationForSlot = maxDuration;
+      if (_duration > _maxDurationForSlot) {
+        _duration = _maxDurationForSlot;
       }
     });
   }
@@ -126,52 +172,134 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
 
     final result = await showDialog<bool>(
       context: context,
+      barrierDismissible: false,
       builder:
-          (context) => AlertDialog(
-            title: const Text('Leave a Review'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text('Rate your experience'),
-                const SizedBox(height: 16),
-                RatingBar.builder(
-                  initialRating: 5,
-                  minRating: 1,
-                  direction: Axis.horizontal,
-                  allowHalfRating: false,
-                  itemCount: 5,
-                  itemPadding: const EdgeInsets.symmetric(horizontal: 4.0),
-                  itemBuilder:
-                      (context, _) =>
-                          const Icon(Icons.star, color: Colors.amber),
-                  onRatingUpdate: (value) {
-                    rating = value;
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: commentController,
-                  decoration: const InputDecoration(
-                    hintText: 'Write your review (optional)',
-                    border: OutlineInputBorder(),
-                  ),
-                  maxLines: 3,
-                ),
-              ],
+          (context) => Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancel'),
+            child: Container(
+              width: MediaQuery.of(context).size.width * 0.9,
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.7,
               ),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context, true),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green[700],
-                ),
-                child: const Text('Submit'),
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.green[50],
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          Icons.rate_review,
+                          color: Colors.green[700],
+                          size: 28,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      const Expanded(
+                        child: Text(
+                          'Leave a Review',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Rate your experience',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  ),
+                  const SizedBox(height: 16),
+                  RatingBar.builder(
+                    initialRating: 5,
+                    minRating: 1,
+                    direction: Axis.horizontal,
+                    allowHalfRating: false,
+                    itemCount: 5,
+                    itemSize: 42,
+                    itemPadding: const EdgeInsets.symmetric(horizontal: 6.0),
+                    itemBuilder:
+                        (context, _) =>
+                            const Icon(Icons.star, color: Colors.amber),
+                    onRatingUpdate: (value) {
+                      rating = value;
+                    },
+                  ),
+                  const SizedBox(height: 24),
+                  TextField(
+                    controller: commentController,
+                    decoration: InputDecoration(
+                      hintText: 'Write your review (optional)',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: Colors.green[700]!,
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                    maxLines: 4,
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            side: BorderSide(color: Colors.grey[400]!),
+                          ),
+                          child: const Text(
+                            'Cancel',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green[700],
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text(
+                            'Submit',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
     );
 
@@ -422,35 +550,6 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.orange[50],
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.local_offer,
-                          color: Colors.orange[700],
-                          size: 20,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          '10% discount if you book 3+ hours',
-                          style: TextStyle(
-                            color: Colors.orange[700],
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
                   const SizedBox(height: 24),
 
                   Row(
@@ -498,16 +597,120 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
                   Row(
                     children: [
                       Expanded(
-                        child: _buildInfoCard('Surface:', 'Artificial Turf'),
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey[200]!),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.03),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.green[50],
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Icon(
+                                      Icons.grass,
+                                      color: Colors.green[700],
+                                      size: 20,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  const Text(
+                                    'Surface',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                widget.venue.surfaceType ?? 'N/A',
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                       const SizedBox(width: 12),
-                      Expanded(child: _buildInfoCard('Capacity:', '5v5 / 7v7')),
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey[200]!),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.03),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue[50],
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Icon(
+                                      Icons.event_available,
+                                      color: Colors.blue[700],
+                                      size: 20,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  const Text(
+                                    'Available',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                widget.venue.availableSlots != null
+                                    ? '${widget.venue.availableSlots} slots'
+                                    : 'N/A',
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ],
                   ),
-
-                  const SizedBox(height: 16),
-
-                  _buildInfoCard('Available Slots:', '18 slots today'),
 
                   const SizedBox(height: 24),
 
@@ -532,7 +735,7 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
-                              '${widget.venue.discount!.percentage!.toStringAsFixed(0)}% discount if you book 3+ hours',
+                              '${widget.venue.discount!.percentage!.toStringAsFixed(0)}% discount if you book ${widget.venue.discount!.forBookings ?? 3}+ hours',
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
@@ -569,15 +772,11 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
                           ],
                         ),
                         const SizedBox(height: 12),
-                        _buildBulletPoint(
-                          'Free cancellation until 24 hours before booking',
-                        ),
-                        _buildBulletPoint(
-                          widget.venue.cancellationPolicy != null &&
-                                  widget.venue.cancellationPolicy!.fee != null
-                              ? '${widget.venue.cancellationPolicy!.fee!.toStringAsFixed(0)}% cancellation fee applies after deadline'
-                              : '50% cancellation fee applies after deadline',
-                        ),
+                        if (widget.venue.cancellationPolicy != null &&
+                            widget.venue.cancellationPolicy!.fee != null)
+                          _buildBulletPoint(
+                            '${widget.venue.cancellationPolicy!.fee!.toStringAsFixed(0)}% cancellation fee applies',
+                          ),
                         _buildBulletPoint(
                           'Refund processed within 3-5 business days',
                         ),
@@ -748,7 +947,6 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
                   ),
                   const SizedBox(height: 16),
 
-
                   Row(
                     children: [
                       Expanded(
@@ -775,7 +973,6 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
                             decoration: BoxDecoration(
                               border: Border.all(color: Colors.grey[300]!),
                               borderRadius: BorderRadius.circular(12),
-                              
                             ),
                             child: Row(
                               children: [
@@ -866,6 +1063,7 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
                                     minute: int.parse(parts[1]),
                                   );
                                 });
+                                _loadMaxDuration();
                               },
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
@@ -913,7 +1111,8 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       IconButton(
-                        onPressed: (_duration > 1
+                        onPressed:
+                            (_duration > 1
                                 ? () => setState(() => _duration--)
                                 : null),
                         icon: Container(
@@ -938,15 +1137,21 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
                       ),
                       const SizedBox(width: 24),
                       IconButton(
-                        onPressed: () {
-                          setState(() {
-                            _duration++;
-                          });
-                        },
+                        onPressed:
+                            (_duration < _maxDurationForSlot
+                                ? () {
+                                  setState(() {
+                                    _duration++;
+                                  });
+                                }
+                                : null),
                         icon: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: Colors.green[700],
+                            color:
+                                _duration < _maxDurationForSlot
+                                    ? Colors.green[700]
+                                    : Colors.grey[300],
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(Icons.add, color: Colors.white),
@@ -954,6 +1159,40 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
                       ),
                     ],
                   ),
+
+                  if (_duration >= _maxDurationForSlot) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.orange[50],
+                        border: Border.all(color: Colors.orange[300]!),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.info_outline,
+                            size: 16,
+                            color: Colors.orange[700],
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Maximum $_maxDurationForSlot hours available for this time slot',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.orange[900],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
 
                   const SizedBox(height: 24),
 
@@ -978,7 +1217,7 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
                             ),
                           ],
                         ),
-                        if (_duration >= 3) ...[
+                        if (_discount > 0) ...[
                           const SizedBox(height: 8),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -991,9 +1230,9 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
                                     color: Colors.orange[700],
                                   ),
                                   const SizedBox(width: 4),
-                                  const Text(
-                                    'Discount (10%)',
-                                    style: TextStyle(fontSize: 14),
+                                  Text(
+                                    'Discount (${widget.venue.discount?.percentage?.toStringAsFixed(0) ?? '0'}%)',
+                                    style: const TextStyle(fontSize: 14),
                                   ),
                                 ],
                               ),
@@ -1076,9 +1315,7 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
             Expanded(
               child: ElevatedButton(
                 onPressed:
-                    
-                            _availableSlots.isEmpty ||
-                            _selectedTimeSlot == null
+                    _availableSlots.isEmpty || _selectedTimeSlot == null
                         ? null
                         : () async {
                           await _handleBooking();
@@ -1136,126 +1373,419 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
       return;
     }
 
-    // Show payment method selection dialog
     final paymentMethod = await showDialog<String>(
       context: context,
+      barrierDismissible: false,
       builder:
-          (context) => AlertDialog(
-            title: const Text('Select Payment Method'),
-            contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ListTile(
-                  leading: Icon(Icons.credit_card, color: Colors.green[700]),
-                  title: const Text('Pay with Card'),
-                  subtitle: const Text('Secure online payment'),
-                  onTap: () => Navigator.of(context).pop('Card'),
-                ),
-                const Divider(),
-                ListTile(
-                  leading: Icon(Icons.money, color: Colors.green[700]),
-                  title: const Text('Cash on Arrival'),
-                  subtitle: const Text('Pay at the venue'),
-                  onTap: () => Navigator.of(context).pop('Cash'),
-                ),
-              ],
+          (context) => Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Cancel'),
+            child: Container(
+              width: MediaQuery.of(context).size.width * 0.9,
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.green[50],
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          Icons.payment,
+                          color: Colors.green[700],
+                          size: 28,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      const Expanded(
+                        child: Text(
+                          'Select Payment Method',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  InkWell(
+                    onTap: () => Navigator.of(context).pop('Card'),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.green[200]!),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.blue[50],
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(
+                              Icons.credit_card,
+                              color: Colors.blue[700],
+                              size: 28,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          const Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Pay with Card',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                SizedBox(height: 4),
+                                Text(
+                                  'Secure online payment',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(
+                            Icons.arrow_forward_ios,
+                            size: 18,
+                            color: Colors.grey[400],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  InkWell(
+                    onTap: () => Navigator.of(context).pop('Cash'),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.green[200]!),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.orange[50],
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(
+                              Icons.money,
+                              color: Colors.orange[700],
+                              size: 28,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          const Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Cash on Arrival',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                SizedBox(height: 4),
+                                Text(
+                                  'Pay at the venue',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(
+                            Icons.arrow_forward_ios,
+                            size: 18,
+                            color: Colors.grey[400],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        side: BorderSide(color: Colors.grey[400]!),
+                      ),
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
     );
 
     if (paymentMethod == null) return;
 
-    // Show booking confirmation
     final confirmed = await showDialog<bool>(
       context: context,
+      barrierDismissible: false,
       builder:
-          (context) => AlertDialog(
-            title: const Text('Confirm Booking'),
-            contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
-            content: SizedBox(
-              width: MediaQuery.of(context).size.width * 0.8,
+          (context) => Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Container(
+              width: MediaQuery.of(context).size.width * 0.9,
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.75,
+              ),
+              padding: const EdgeInsets.all(24),
               child: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Venue: ${widget.venue.name}'),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Date: ${_selectedDate.day}.${_selectedDate.month}.${_selectedDate.year}',
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.green[50],
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            Icons.bookmark_add,
+                            color: Colors.green[700],
+                            size: 28,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        const Expanded(
+                          child: Text(
+                            'Confirm Booking',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 8),
-                    Text('Time: $_selectedTimeSlot'),
-                    const SizedBox(height: 8),
-                    Text('Duration: $_duration hours'),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Total: ${_finalPrice.toStringAsFixed(2)} BAM',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green[700],
+                    const SizedBox(height: 24),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[50],
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey[200]!),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildInfoRow(
+                            Icons.stadium,
+                            'Venue',
+                            widget.venue.name,
+                          ),
+                          const Divider(height: 24),
+                          _buildInfoRow(
+                            Icons.calendar_today,
+                            'Date',
+                            '${_selectedDate.day}.${_selectedDate.month}.${_selectedDate.year}',
+                          ),
+                          const Divider(height: 24),
+                          _buildInfoRow(
+                            Icons.access_time,
+                            'Time',
+                            _selectedTimeSlot ?? '--:--',
+                          ),
+                          const Divider(height: 24),
+                          _buildInfoRow(
+                            Icons.timelapse,
+                            'Duration',
+                            '$_duration hours',
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 16),
                     Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color:
                             paymentMethod == 'Card'
                                 ? Colors.blue[50]
                                 : Colors.orange[50],
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color:
+                              paymentMethod == 'Card'
+                                  ? Colors.blue[200]!
+                                  : Colors.orange[200]!,
+                        ),
                       ),
                       child: Row(
                         children: [
-                          Icon(
-                            paymentMethod == 'Card'
-                                ? Icons.credit_card
-                                : Icons.money,
-                            color:
-                                paymentMethod == 'Card'
-                                    ? Colors.blue[700]
-                                    : Colors.orange[700],
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              paymentMethod == 'Card'
+                                  ? Icons.credit_card
+                                  : Icons.money,
+                              color:
+                                  paymentMethod == 'Card'
+                                      ? Colors.blue[700]
+                                      : Colors.orange[700],
+                              size: 24,
+                            ),
                           ),
-                          const SizedBox(width: 8),
-                          Text(
-                            paymentMethod == 'Card'
-                                ? 'Payment: Card (Secure Payment)'
-                                : 'Payment: Cash on Arrival',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  paymentMethod == 'Card'
+                                      ? 'Card Payment'
+                                      : 'Cash on Arrival',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color:
+                                        paymentMethod == 'Card'
+                                            ? Colors.blue[900]
+                                            : Colors.orange[900],
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  paymentMethod == 'Card'
+                                      ? 'Secure online payment'
+                                      : 'Pay at the venue',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color:
+                                        paymentMethod == 'Card'
+                                            ? Colors.blue[700]
+                                            : Colors.orange[700],
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
                     ),
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.green[50],
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.green[200]!),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Total Amount',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            '${_finalPrice.toStringAsFixed(2)} BAM',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.green[700],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.of(context).pop(false),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              side: BorderSide(color: Colors.grey[400]!),
+                            ),
+                            child: const Text(
+                              'Cancel',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () => Navigator.of(context).pop(true),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green[700],
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text(
+                              'Confirm',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green[700],
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('Confirm'),
-              ),
-            ],
           ),
     );
 
@@ -1263,7 +1793,6 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
 
     String? paymentIntentId;
 
-    // If card payment, show Stripe payment sheet
     if (paymentMethod == 'Card') {
       try {
         showDialog(
@@ -1273,8 +1802,6 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
               (context) => const Center(child: CircularProgressIndicator()),
         );
 
-        // Create payment intent
-        print('Creating payment intent for amount: $_finalPrice');
         final paymentIntentData = await _bookingProvider.createPaymentIntent(
           _finalPrice,
           'Booking at ${widget.venue.name}',
@@ -1295,10 +1822,8 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
           return;
         }
 
-        // Validate payment intent data
         if (!paymentIntentData.containsKey('clientSecret') ||
             paymentIntentData['clientSecret'] == null) {
-          print('Invalid payment intent data: $paymentIntentData');
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text(
@@ -1311,9 +1836,6 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
           return;
         }
 
-        print('Payment intent created, initializing payment sheet...');
-
-        // Initialize payment sheet
         await Stripe.instance.initPaymentSheet(
           paymentSheetParameters: SetupPaymentSheetParameters(
             paymentIntentClientSecret: paymentIntentData['clientSecret'],
@@ -1322,18 +1844,12 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
           ),
         );
 
-        print('Presenting payment sheet...');
-
-        // Present payment sheet
         await Stripe.instance.presentPaymentSheet();
-
-        print('Payment completed successfully');
 
         paymentIntentId = paymentIntentData['paymentIntentId'];
       } on StripeException catch (e) {
         if (context.mounted) {
           Navigator.of(context).pop();
-          print('Stripe error: ${e.error.code} - ${e.error.message}');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
@@ -1348,7 +1864,6 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
       } catch (e) {
         if (context.mounted) {
           Navigator.of(context).pop();
-          print('Payment error: $e');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Payment cancelled or failed. Please try again.'),
@@ -1361,7 +1876,6 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
       }
     }
 
-    // Create booking
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -1398,72 +1912,224 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
     Navigator.of(context).pop();
 
     if (booking != null) {
+      final notificationProvider = Provider.of<NotificationProvider>(
+        context,
+        listen: false,
+      );
+      notificationProvider.addBookingNotification(
+        bookingNumber: booking.bookingNumber,
+        venueName: booking.venueName ?? widget.venue.name,
+        date:
+            '${_selectedDate.day}.${_selectedDate.month}.${_selectedDate.year}',
+        time: _selectedTimeSlot ?? '',
+        totalPrice: _finalPrice,
+      );
+
       showDialog(
         context: context,
+        barrierDismissible: false,
         builder:
-            (context) => AlertDialog(
-              title: Row(
-                children: [
-                  Icon(Icons.check_circle, color: Colors.green[700], size: 32),
-                  const SizedBox(width: 12),
-                  const Text('Booking Created!'),
-                ],
+            (context) => Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
               ),
-              contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
-              content: SizedBox(
-                width: MediaQuery.of(context).size.width * 0.8,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Booking Number: ${booking.bookingNumber}',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 12),
-                    Text('Venue: ${booking.venueName}'),
-                    Text(
-                      'Date: ${_selectedDate.day}.${_selectedDate.month}.${_selectedDate.year}',
-                    ),
-                    Text('Time: $_selectedTimeSlot - ${endTime.hour}:00'),
-                    Text('Duration: $_duration hours'),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Total: ${_finalPrice.toStringAsFixed(2)} BAM',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.9,
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height * 0.8,
+                ),
+                padding: const EdgeInsets.all(24),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.green[50],
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.check_circle,
+                          color: Colors.green[700],
+                          size: 64,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color:
-                            paymentMethod == 'Card'
-                                ? Colors.blue[50]
-                                : Colors.orange[50],
-                        borderRadius: BorderRadius.circular(8),
+                      const SizedBox(height: 20),
+                      const Text(
+                        'Booking Created!',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                      child: Text(
-                        paymentMethod == 'Card'
-                            ? 'Status: Pending confirmation\nPayment: Card (Paid)'
-                            : 'Status: Pending confirmation\nPayment: Cash on arrival',
-                        style: const TextStyle(fontSize: 12),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Your booking has been successfully created',
+                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                        textAlign: TextAlign.center,
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 24),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[50],
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey[200]!),
+                        ),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Booking Number',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                                Text(
+                                  booking.bookingNumber,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const Divider(height: 24),
+                            _buildInfoRow(
+                              Icons.stadium,
+                              'Venue',
+                              booking.venueName ?? widget.venue.name,
+                            ),
+                            const Divider(height: 24),
+                            _buildInfoRow(
+                              Icons.calendar_today,
+                              'Date',
+                              '${_selectedDate.day}.${_selectedDate.month}.${_selectedDate.year}',
+                            ),
+                            const Divider(height: 24),
+                            _buildInfoRow(
+                              Icons.access_time,
+                              'Time',
+                              '$_selectedTimeSlot - ${endTime.hour.toString().padLeft(2, '0')}:00',
+                            ),
+                            const Divider(height: 24),
+                            _buildInfoRow(
+                              Icons.timelapse,
+                              'Duration',
+                              '$_duration hours',
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.green[50],
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.green[200]!),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Total Amount',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Text(
+                              '${_finalPrice.toStringAsFixed(2)} BAM',
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green[700],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color:
+                              paymentMethod == 'Card'
+                                  ? Colors.blue[50]
+                                  : Colors.orange[50],
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color:
+                                paymentMethod == 'Card'
+                                    ? Colors.blue[200]!
+                                    : Colors.orange[200]!,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              paymentMethod == 'Card'
+                                  ? Icons.credit_card
+                                  : Icons.money,
+                              color:
+                                  paymentMethod == 'Card'
+                                      ? Colors.blue[700]
+                                      : Colors.orange[700],
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                paymentMethod == 'Card'
+                                    ? 'Status: Confirmed ✓\nPayment: Completed ✓'
+                                    : 'Status: Pending confirmation\nPayment: Cash on arrival',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color:
+                                      paymentMethod == 'Card'
+                                          ? Colors.green[900]
+                                          : Colors.orange[900],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                            Navigator.of(context).pop();
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green[700],
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text(
+                            'Done',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text('OK'),
-                ),
-              ],
             ),
       );
 
@@ -1494,27 +2160,6 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
     }
   }
 
-  Widget _buildInfoCard(String label, String value) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildAmenityChip(String label, IconData icon) {
     return Chip(
       avatar: Icon(icon, size: 18, color: Colors.green[700]),
@@ -1539,6 +2184,38 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String label, String value) {
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: Colors.green[700]),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -1588,4 +2265,3 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
     );
   }
 }
-

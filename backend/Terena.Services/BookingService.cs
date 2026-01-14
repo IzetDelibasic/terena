@@ -7,6 +7,7 @@ using Terena.Models.DTOs;
 using Terena.Models.Enums;
 using Terena.Models.Requests;
 using Terena.Models.SearchObjects;
+using Terena.Models.Messages;
 using Terena.Services.BaseServices;
 using Terena.Services.Database;
 using Terena.Services.Interfaces;
@@ -15,19 +16,22 @@ namespace Terena.Services
 {
     public class BookingService : BaseCRUDService<BookingDTO, BookingSearchObject, Booking, BookingInsertRequest, BookingUpdateRequest>, IBookingService
     {
-        public BookingService(TerenaDbContext context) : base(context)
+        private readonly INotificationService _notificationService;
+
+        public BookingService(TerenaDbContext context, INotificationService notificationService) : base(context)
         {
+            _notificationService = notificationService;
         }
 
         public override BookingDTO Insert(BookingInsertRequest request)
         {
             var entity = new Booking();
-            
+
             BeforeInsert(request, entity);
 
             Context.Add(entity);
             Context.SaveChanges();
-            
+
             AfterInsert(request, entity);
 
             var savedEntity = Context.Set<Booking>()
@@ -38,6 +42,30 @@ namespace Terena.Services
 
             if (savedEntity == null)
                 throw new Exception("Failed to create booking");
+
+            try
+            {
+                var confirmationMessage = new BookingConfirmationMessage
+                {
+                    BookingId = savedEntity.Id,
+                    UserId = savedEntity.UserId,
+                    UserEmail = savedEntity.User?.Email ?? "N/A",
+                    UserName = savedEntity.User?.Username ?? "N/A",
+                    BookingNumber = savedEntity.BookingNumber,
+                    VenueName = savedEntity.Venue?.Name ?? "N/A",
+                    BookingDate = savedEntity.BookingDate,
+                    TimeSlot = $"{savedEntity.StartTime:HH:mm} - {savedEntity.EndTime:HH:mm}",
+                    TotalPrice = savedEntity.TotalPrice,
+                    Status = savedEntity.Status.ToString(),
+                    CreatedAt = savedEntity.CreatedAt
+                };
+
+                _notificationService.SendBookingConfirmationAsync(confirmationMessage).Wait();
+            }
+            catch (Exception ex)
+            {
+                // Notification failed - log but don't block the operation
+            }
 
             return savedEntity.Adapt<BookingDTO>();
         }
@@ -147,9 +175,15 @@ namespace Terena.Services
 
         public override void BeforeInsert(BookingInsertRequest request, Booking entity)
         {
+            var userExists = Context.Set<User>().Any(u => u.Id == request.UserId);
+            if (!userExists)
+            {
+                throw new Exception($"User with ID {request.UserId} does not exist. Please ensure you are logged in.");
+            }
+
             var requestStartUtc = request.StartTime.ToUniversalTime();
             var requestEndUtc = request.EndTime.ToUniversalTime();
-            
+
             var hasConflict = Context.Set<Booking>()
                 .Any(b => b.VenueId == request.VenueId
                     && (request.CourtId == null || b.CourtId == request.CourtId)
@@ -164,8 +198,6 @@ namespace Terena.Services
 
             entity.BookingNumber = GenerateBookingNumber();
             entity.CreatedAt = DateTime.UtcNow;
-            entity.Status = BookingStatus.Pending;
-            entity.PaymentStatus = PaymentStatus.Pending;
             entity.BookingDate = request.BookingDate.ToUniversalTime();
             entity.StartTime = requestStartUtc;
             entity.EndTime = requestEndUtc;
@@ -206,6 +238,21 @@ namespace Terena.Services
 
             entity.PaymentMethod = request.PaymentMethod;
             entity.IsDeleted = false;
+
+            if (!string.IsNullOrEmpty(request.StripePaymentIntentId) ||
+                (request.PaymentMethod?.Equals("Card", StringComparison.OrdinalIgnoreCase) ?? false))
+            {
+                entity.Status = BookingStatus.Confirmed;
+                entity.ConfirmedAt = DateTime.UtcNow;
+                entity.PaymentStatus = PaymentStatus.Paid;
+                entity.PaidAt = DateTime.UtcNow;
+                entity.StripePaymentIntentId = request.StripePaymentIntentId;
+            }
+            else
+            {
+                entity.Status = BookingStatus.Pending;
+                entity.PaymentStatus = PaymentStatus.Pending;
+            }
         }
 
         public override void BeforeUpdate(BookingUpdateRequest request, Booking entity)
@@ -267,8 +314,12 @@ namespace Terena.Services
 
         public async Task<BookingDTO> ConfirmBookingAsync(int bookingId)
         {
-            var booking = await Context.Set<Booking>().FindAsync(bookingId);
-            
+            var booking = await Context.Set<Booking>()
+                .Include(b => b.User)
+                .Include(b => b.Venue)
+                .Include(b => b.Court)
+                .FirstOrDefaultAsync(b => b.Id == bookingId);
+
             if (booking == null)
                 throw new Exception("Booking not found!");
 
@@ -279,13 +330,41 @@ namespace Terena.Services
             booking.ConfirmedAt = DateTime.UtcNow;
 
             await Context.SaveChangesAsync();
+
+            try
+            {
+                var confirmationMessage = new BookingConfirmationMessage
+                {
+                    BookingId = booking.Id,
+                    UserId = booking.UserId,
+                    UserEmail = booking.User?.Email ?? "N/A",
+                    UserName = booking.User?.Username ?? "N/A",
+                    BookingNumber = booking.BookingNumber,
+                    VenueName = booking.Venue?.Name ?? "N/A",
+                    BookingDate = booking.BookingDate,
+                    TimeSlot = $"{booking.StartTime:HH:mm} - {booking.EndTime:HH:mm}",
+                    TotalPrice = booking.TotalPrice,
+                    Status = booking.Status.ToString(),
+                    CreatedAt = booking.CreatedAt
+                };
+
+                _notificationService.SendBookingConfirmationAsync(confirmationMessage).Wait();
+            }
+            catch (Exception ex)
+            {
+                // Notification failed - log but don't block the operation
+            }
+
             return GetById(bookingId);
         }
 
         public async Task<BookingDTO> CancelBookingAsync(int bookingId, string cancellationReason)
         {
-            var booking = await Context.Set<Booking>().FindAsync(bookingId);
-            
+            var booking = await Context.Set<Booking>()
+                .Include(b => b.User)
+                .Include(b => b.Venue)
+                .FirstOrDefaultAsync(b => b.Id == bookingId);
+
             if (booking == null)
                 throw new Exception("Booking not found!");
 
@@ -300,6 +379,20 @@ namespace Terena.Services
             booking.CancelledAt = DateTime.UtcNow;
 
             await Context.SaveChangesAsync();
+
+            try
+            {
+                await _notificationService.SendBookingCancellationAsync(
+                    booking.Id,
+                    booking.UserId,
+                    cancellationReason ?? "No reason provided"
+                );
+            }
+            catch (Exception ex)
+            {
+                // Notification failed - log but don't block the operation
+            }
+
             return GetById(bookingId);
         }
 
@@ -370,37 +463,82 @@ namespace Terena.Services
 
         public async Task<List<string>> GetAvailableTimeSlotsAsync(int venueId, DateTime date, int? courtId = null)
         {
-            var startHour = 8; 
-            var endHour = 22;  
-            
+            var startHour = 8;
+            var endHour = 22;
+
             var availableSlots = new List<string>();
-            
+
             var dateUtc = date.ToUniversalTime().Date;
-            
+
             var bookings = await Context.Set<Booking>()
                 .Where(b => b.VenueId == venueId
                     && (courtId == null || b.CourtId == courtId)
-                    && b.StartTime.Date == dateUtc
+                    && b.BookingDate.Date == dateUtc
                     && b.Status != BookingStatus.Cancelled)
                 .ToListAsync();
-            
+
             for (int hour = startHour; hour < endHour; hour++)
             {
                 var slotTime = new DateTime(dateUtc.Year, dateUtc.Month, dateUtc.Day, hour, 0, 0, DateTimeKind.Utc);
                 var slotEndTime = slotTime.AddHours(1);
-                
-                bool isAvailable = !bookings.Any(b => 
+
+                bool isAvailable = !bookings.Any(b =>
                     (slotTime >= b.StartTime && slotTime < b.EndTime) ||
                     (slotEndTime > b.StartTime && slotEndTime <= b.EndTime) ||
                     (slotTime <= b.StartTime && slotEndTime >= b.EndTime));
-                
+
                 if (isAvailable)
                 {
                     availableSlots.Add($"{hour:D2}:00");
                 }
             }
-            
+
             return availableSlots;
+        }
+
+        public async Task<int> GetMaxDurationForSlotAsync(int venueId, DateTime date, string timeSlot, int? courtId = null)
+        {
+            var startHour = 8;
+            var endHour = 22;
+
+            var dateUtc = date.ToUniversalTime().Date;
+
+            var slotParts = timeSlot.Split(':');
+            if (slotParts.Length != 2 || !int.TryParse(slotParts[0], out int selectedHour))
+            {
+                return 1;
+            }
+
+            var bookings = await Context.Set<Booking>()
+                .Where(b => b.VenueId == venueId
+                    && (courtId == null || b.CourtId == courtId)
+                    && b.BookingDate.Date == dateUtc
+                    && b.Status != BookingStatus.Cancelled)
+                .OrderBy(b => b.StartTime)
+                .ToListAsync();
+
+            var slotStartTime = new DateTime(dateUtc.Year, dateUtc.Month, dateUtc.Day, selectedHour, 0, 0, DateTimeKind.Utc);
+
+            int maxDuration = 0;
+            for (int hour = selectedHour; hour < endHour; hour++)
+            {
+                var checkTime = new DateTime(dateUtc.Year, dateUtc.Month, dateUtc.Day, hour, 0, 0, DateTimeKind.Utc);
+                var checkEndTime = checkTime.AddHours(1);
+
+                bool isBlocked = bookings.Any(b =>
+                    (checkTime >= b.StartTime && checkTime < b.EndTime) ||
+                    (checkEndTime > b.StartTime && checkEndTime <= b.EndTime) ||
+                    (checkTime <= b.StartTime && checkEndTime >= b.EndTime));
+
+                if (isBlocked)
+                {
+                    break;
+                }
+
+                maxDuration++;
+            }
+
+            return maxDuration > 0 ? maxDuration : 1;
         }
     }
 }

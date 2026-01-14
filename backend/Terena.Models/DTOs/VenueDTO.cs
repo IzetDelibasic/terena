@@ -39,7 +39,6 @@ namespace Terena.Models.DTOs
 
     public class CancellationPolicyDTO
     {
-        public DateTime FreeUntil { get; set; }
         public decimal Fee { get; set; }
     }
 

@@ -1,5 +1,6 @@
 using Mapster;
 using Terena.Models.DTOs;
+using Terena.Models.Enums;
 using Terena.Services.Database;
 
 namespace Terena.Services.Mapping
@@ -8,6 +9,8 @@ namespace Terena.Services.Mapping
     {
         public static void Register()
         {
+            TypeAdapterConfig.GlobalSettings.Default.EnumMappingStrategy(EnumMappingStrategy.ByName);
+
             TypeAdapterConfig<Court, CourtDTO>.NewConfig()
                 .Map(dest => dest.VenueName, src => src.Venue != null ? src.Venue.Name : null);
 
@@ -18,14 +21,16 @@ namespace Terena.Services.Mapping
                 .Map(dest => dest.VenueLocation, src => src.Venue != null ? src.Venue.Location : null)
                 .Map(dest => dest.VenueAddress, src => src.Venue != null ? src.Venue.Address : null)
                 .Map(dest => dest.VenueContactPhone, src => src.Venue != null ? src.Venue.ContactPhone : null)
-                .Map(dest => dest.VenueAverageRating, src => src.Venue != null && src.Venue.Reviews != null && src.Venue.Reviews.Any() 
-                    ? (decimal)src.Venue.Reviews.Average(r => r.Rating) 
+                .Map(dest => dest.VenueAverageRating, src => src.Venue != null && src.Venue.Reviews != null && src.Venue.Reviews.Any()
+                    ? (decimal)src.Venue.Reviews.Average(r => r.Rating)
                     : 0m)
-                .Map(dest => dest.VenueTotalReviews, src => src.Venue != null && src.Venue.Reviews != null 
-                    ? src.Venue.Reviews.Count 
+                .Map(dest => dest.VenueTotalReviews, src => src.Venue != null && src.Venue.Reviews != null
+                    ? src.Venue.Reviews.Count
                     : 0)
                 .Map(dest => dest.CourtName, src => src.Court != null ? src.Court.Name : null)
-                .Map(dest => dest.CourtMaxCapacity, src => src.Court != null ? src.Court.MaxCapacity : null);
+                .Map(dest => dest.CourtMaxCapacity, src => src.Court != null ? src.Court.MaxCapacity : null)
+                .Map(dest => dest.Status, src => src.Status.ToString().ToUpper())
+                .Map(dest => dest.PaymentStatus, src => src.PaymentStatus.ToString().ToUpper());
 
             TypeAdapterConfig<Review, ReviewDTO>.NewConfig()
                 .Map(dest => dest.UserUsername, src => src.User != null ? src.User.Username : null)
@@ -56,7 +61,6 @@ namespace Terena.Services.Mapping
                 .Map(dest => dest.CancellationPolicy, src => src.CancellationPolicy != null 
                     ? new CancellationPolicyDTO 
                     { 
-                        FreeUntil = src.CancellationPolicy.FreeUntil, 
                         Fee = src.CancellationPolicy.Fee 
                     } 
                     : null)

@@ -119,31 +119,57 @@ class Booking {
             ? DateTime.parse(json['cancellationDeadline'])
             : null;
     if (json['status'] != null) {
-      int statusValue =
-          json['status'] is int
-              ? json['status']
-              : int.tryParse(json['status'].toString()) ?? 0;
-      switch (statusValue) {
-        case 0:
-          status = 'Pending';
-          break;
-        case 1:
-          status = 'Accepted';
-          break;
-        case 2:
-          status = 'Confirmed';
-          break;
-        case 3:
-          status = 'Completed';
-          break;
-        case 4:
-          status = 'Cancelled';
-          break;
-        case 5:
-          status = 'Expired';
-          break;
-        default:
-          status = 'Pending';
+      if (json['status'] is String) {
+        String statusStr = json['status'].toString().toUpperCase();
+        switch (statusStr) {
+          case 'PENDING':
+            status = 'Pending';
+            break;
+          case 'ACCEPTED':
+            status = 'Accepted';
+            break;
+          case 'CONFIRMED':
+            status = 'Confirmed';
+            break;
+          case 'COMPLETED':
+            status = 'Completed';
+            break;
+          case 'CANCELLED':
+            status = 'Cancelled';
+            break;
+          case 'EXPIRED':
+            status = 'Expired';
+            break;
+          default:
+            status = 'Pending';
+        }
+      } else {
+        int statusValue =
+            json['status'] is int
+                ? json['status']
+                : int.tryParse(json['status'].toString()) ?? 0;
+        switch (statusValue) {
+          case 0:
+            status = 'Pending';
+            break;
+          case 1:
+            status = 'Accepted';
+            break;
+          case 2:
+            status = 'Confirmed';
+            break;
+          case 3:
+            status = 'Completed';
+            break;
+          case 4:
+            status = 'Cancelled';
+            break;
+          case 5:
+            status = 'Expired';
+            break;
+          default:
+            status = 'Pending';
+        }
       }
     }
     createdAt =
@@ -164,25 +190,46 @@ class Booking {
     refundAmount = json['refundAmount']?.toDouble();
     paymentMethod = json['paymentMethod'];
     if (json['paymentStatus'] != null) {
-      int paymentStatusValue =
-          json['paymentStatus'] is int
-              ? json['paymentStatus']
-              : int.tryParse(json['paymentStatus'].toString()) ?? 0;
-      switch (paymentStatusValue) {
-        case 0:
-          paymentStatus = 'Pending';
-          break;
-        case 1:
-          paymentStatus = 'Paid';
-          break;
-        case 2:
-          paymentStatus = 'Refunded';
-          break;
-        case 3:
-          paymentStatus = 'PartiallyRefunded';
-          break;
-        default:
-          paymentStatus = 'Pending';
+      if (json['paymentStatus'] is String) {
+        String paymentStatusStr =
+            json['paymentStatus'].toString().toUpperCase();
+        switch (paymentStatusStr) {
+          case 'PENDING':
+            paymentStatus = 'Pending';
+            break;
+          case 'PAID':
+            paymentStatus = 'Paid';
+            break;
+          case 'REFUNDED':
+            paymentStatus = 'Refunded';
+            break;
+          case 'PARTIALLYREFUNDED':
+            paymentStatus = 'PartiallyRefunded';
+            break;
+          default:
+            paymentStatus = 'Pending';
+        }
+      } else {
+        int paymentStatusValue =
+            json['paymentStatus'] is int
+                ? json['paymentStatus']
+                : int.tryParse(json['paymentStatus'].toString()) ?? 0;
+        switch (paymentStatusValue) {
+          case 0:
+            paymentStatus = 'Pending';
+            break;
+          case 1:
+            paymentStatus = 'Paid';
+            break;
+          case 2:
+            paymentStatus = 'Refunded';
+            break;
+          case 3:
+            paymentStatus = 'PartiallyRefunded';
+            break;
+          default:
+            paymentStatus = 'Pending';
+        }
       }
     }
     paidAt = json['paidAt'] != null ? DateTime.parse(json['paidAt']) : null;

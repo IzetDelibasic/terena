@@ -1,16 +1,29 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Terena.Models.Requests
 {
     public class VenueUpsertRequest
     {
+        [Required]
         public string Name { get; set; }
+        [Required]
         public string Location { get; set; }
+        [Required]
         public string Address { get; set; }
+        [Required]
         public string SportType { get; set; }
+        [Required]
         public string SurfaceType { get; set; }
+        [Required]
         public decimal PricePerHour { get; set; }
+        [Required]
         public int AvailableSlots { get; set; }
         public string Description { get; set; }
+        [Required]
+        [Phone]
         public string ContactPhone { get; set; }
+        [Required]
+        [EmailAddress]
         public string ContactEmail { get; set; }
         public string VenueImageUrl { get; set; }
         
@@ -38,7 +51,6 @@ namespace Terena.Models.Requests
 
     public class CancellationPolicyRequest
     {
-        public DateTime FreeUntil { get; set; }
         public decimal Fee { get; set; }
     }
 

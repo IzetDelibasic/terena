@@ -1,0 +1,59 @@
+# Flutter/Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+.flutter-devtools/
+
+# IDE - IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+.idea_modules/
+
+# IDE - VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Backend - .NET
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+.vs/
+*.user
+*.suo
+*.cache
+*.log
+*.tmp
+
+# Frontend - Flutter generated files
+**/ios/Flutter/.last_build_id
+**/ios/Flutter/flutter_export_environment.sh
+**/macos/Flutter/GeneratedPluginRegistrant.swift
+**/macos/Flutter/ephemeral/
+**/linux/flutter/ephemeral/
+**/windows/flutter/ephemeral/
+
+# Frontend - Dart Tool
+**/dart_tool/
+
+# Coverage
+coverage/
+*.lcov
+
+# Exceptions for Flutter templates
+!**/ios/.gitignore
+!**/android/.gitignore
+!**/macos/.gitignore
+!**/linux/.gitignore
+!**/windows/.gitignore

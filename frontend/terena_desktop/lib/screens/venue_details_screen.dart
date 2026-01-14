@@ -40,14 +40,7 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
 
   Future<void> _loadVenueDetails() async {
     try {
-      print('Loading venue details for ID: ${widget.venue.id}');
       final fullVenue = await venueProvider.getById(widget.venue.id!);
-
-      print('Full venue loaded:');
-      print('CancellationPolicy: ${fullVenue?.cancellationPolicy}');
-      print('CancellationPolicy Fee: ${fullVenue?.cancellationPolicy?.fee}');
-      print('Discount: ${fullVenue?.discount}');
-      print('Discount Percentage: ${fullVenue?.discount?.percentage}');
 
       if (fullVenue != null) {
         setState(() {
@@ -58,22 +51,14 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
           if (fullVenue.cancellationPolicy?.fee != null) {
             cancellationFeeController.text =
                 fullVenue.cancellationPolicy!.fee!.toString();
-            print(
-              'Set cancellationFeeController: ${cancellationFeeController.text}',
-            );
           }
           if (fullVenue.discount?.percentage != null) {
             discountPercentageController.text =
                 fullVenue.discount!.percentage!.toString();
-            print(
-              'Set discountPercentageController: ${discountPercentageController.text}',
-            );
           }
         });
       }
-    } catch (e) {
-      print('Error loading venue details: $e');
-    }
+    } catch (e) {}
   }
 
   @override
@@ -662,8 +647,6 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
         Map<String, dynamic>? cancellationPolicy;
         if (cancellationFeeController.text.isNotEmpty) {
           cancellationPolicy = {
-            'freeUntil':
-                DateTime.now().add(const Duration(hours: 24)).toIso8601String(),
             'fee': double.tryParse(cancellationFeeController.text) ?? 0.0,
           };
         }
