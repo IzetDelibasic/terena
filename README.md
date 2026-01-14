@@ -58,6 +58,11 @@ or
 - **Username:** kenan
 - **Password:** Kenan123
 
+### **Mobile Application (Blocked Users)**
+
+- **Username:** blocked_user
+- **Password:** Blocked123
+
 ---
 
 ## **Test Payment Credentials**
