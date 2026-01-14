@@ -133,19 +133,16 @@ class OperatingHour {
 }
 
 class CancellationPolicy {
-  DateTime? freeUntil;
   double? fee;
 
-  CancellationPolicy({this.freeUntil, this.fee});
+  CancellationPolicy({this.fee});
 
   CancellationPolicy.fromJson(Map<String, dynamic> json) {
-    freeUntil =
-        json['freeUntil'] != null ? DateTime.parse(json['freeUntil']) : null;
     fee = json['fee']?.toDouble();
   }
 
   Map<String, dynamic> toJson() {
-    return {'freeUntil': freeUntil?.toIso8601String(), 'fee': fee};
+    return {'fee': fee};
   }
 }
 

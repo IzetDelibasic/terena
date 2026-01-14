@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Confirmation</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .header {
+            background: linear-gradient(135deg, #2e7d32 0%, #4caf50 100%);
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            color: #ffffff;
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background-color: #ffffff;
+            border-radius: 50%;
+            margin: 20px auto 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .greeting {
+            font-size: 18px;
+            color: #333333;
+            margin-bottom: 20px;
+        }
+        .message {
+            font-size: 16px;
+            color: #666666;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        .booking-details {
+            background-color: #f9f9f9;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-left: 4px solid #4caf50;
+        }
+        .booking-number {
+            background-color: #e8f5e9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .booking-number-label {
+            font-size: 12px;
+            color: #666666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+        .booking-number-value {
+            font-size: 24px;
+            color: #2e7d32;
+            font-weight: bold;
+        }
+        .detail-row {
+            display: flex;
+            padding: 12px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            font-weight: 600;
+            color: #333333;
+            min-width: 140px;
+            font-size: 14px;
+        }
+        .detail-value {
+            color: #666666;
+            font-size: 14px;
+        }
+        .price-summary {
+            background-color: #e8f5e9;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding-top: 15px;
+            border-top: 2px solid #4caf50;
+            margin-top: 10px;
+        }
+        .total-label {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333333;
+        }
+        .total-amount {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2e7d32;
+        }
+        .payment-info {
+            background-color: {{PaymentBackgroundColor}};
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 2px solid {{PaymentBorderColor}};
+        }
+        .payment-info h3 {
+            margin: 0 0 10px 0;
+            color: {{PaymentTextColor}};
+            font-size: 16px;
+        }
+        .payment-info p {
+            margin: 0;
+            color: {{PaymentTextColor}};
+            font-size: 14px;
+        }
+        .important-info {
+            background-color: #fff3e0;
+            border-left: 4px solid #ff9800;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .important-info h3 {
+            margin: 0 0 10px 0;
+            color: #e65100;
+            font-size: 16px;
+        }
+        .important-info ul {
+            margin: 0;
+            padding-left: 20px;
+            color: #666666;
+        }
+        .important-info li {
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .button-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .button {
+            display: inline-block;
+            background-color: #4caf50;
+            color: #ffffff;
+            padding: 15px 40px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .footer {
+            background-color: #f5f5f5;
+            padding: 30px;
+            text-align: center;
+            color: #999999;
+            font-size: 13px;
+        }
+        .footer a {
+            color: #4caf50;
+            text-decoration: none;
+        }
+        .social-links {
+            margin-top: 20px;
+        }
+        .social-links a {
+            display: inline-block;
+            margin: 0 10px;
+            color: #999999;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎾 Terena</h1>
+            <div class="success-icon">✓</div>
+        </div>
+
+        <div class="content">
+            <div class="greeting">
+                Hello {{UserName}}! 👋
+            </div>
+
+            <div class="message">
+                Great news! Your booking has been confirmed. We're excited to see you at the venue!
+            </div>
+
+            <div class="booking-number">
+                <div class="booking-number-label">Booking Number</div>
+                <div class="booking-number-value">{{BookingNumber}}</div>
+            </div>
+
+            <div class="booking-details">
+                <div class="detail-row">
+                    <div class="detail-label">🏟️ Venue</div>
+                    <div class="detail-value">{{VenueName}}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">📅 Date</div>
+                    <div class="detail-value">{{BookingDate}}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">🕐 Time</div>
+                    <div class="detail-value">{{TimeSlot}}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">⏱️ Duration</div>
+                    <div class="detail-value">{{Duration}}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">📊 Status</div>
+                    <div class="detail-value">{{Status}}</div>
+                </div>
+            </div>
+
+            <div class="price-summary">
+                <div class="price-row">
+                    <span>Subtotal</span>
+                    <span>{{TotalPrice}} BAM</span>
+                </div>
+                {{#if HasDiscount}}
+                <div class="price-row" style="color: #ff9800;">
+                    <span>Discount</span>
+                    <span>-{{DiscountAmount}} BAM</span>
+                </div>
+                {{/if}}
+                <div class="total-row">
+                    <span class="total-label">Total Amount</span>
+                    <span class="total-amount">{{FinalPrice}} BAM</span>
+                </div>
+            </div>
+
+            <div class="payment-info">
+                <h3>💳 Payment Information</h3>
+                <p>{{PaymentMessage}}</p>
+            </div>
+
+            <div class="important-info">
+                <h3>⚠️ Important Information</h3>
+                <ul>
+                    <li>Please arrive 10 minutes before your scheduled time</li>
+                    <li>Bring your booking number for check-in</li>
+                    <li>Cancellation policy: {{CancellationPolicy}}</li>
+                    <li>For any changes or inquiries, contact us at support@terena.com</li>
+                </ul>
+            </div>
+
+            <div class="button-container">
+                <a href="{{AppUrl}}" class="button">View in App</a>
+            </div>
+
+            <div class="message">
+                If you have any questions or need to make changes to your booking, please don't hesitate to contact us.
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>
+                <strong>Terena</strong><br>
+                Your premier sports venue booking platform<br>
+                Bosnia and Herzegovina
+            </p>
+            <p style="margin-top: 15px;">
+                Email: <a href="mailto:support@terena.com">support@terena.com</a><br>
+                Phone: +387 XX XXX XXX
+            </p>
+            <div class="social-links">
+                <a href="#">Facebook</a> |
+                <a href="#">Instagram</a> |
+                <a href="#">Twitter</a>
+            </div>
+            <p style="margin-top: 20px; font-size: 11px;">
+                You received this email because you made a booking on Terena.<br>
+                © 2026 Terena. All rights reserved.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

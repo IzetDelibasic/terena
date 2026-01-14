@@ -42,7 +42,6 @@ class _AllVenuesScreenState extends State<AllVenuesScreen> {
         _isLoading = false;
       });
     } catch (e) {
-      print('Error loading venues: $e');
       setState(() {
         _isLoading = false;
       });

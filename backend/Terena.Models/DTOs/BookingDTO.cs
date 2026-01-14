@@ -34,13 +34,13 @@ namespace Terena.Models.DTOs
         public decimal ServiceFee { get; set; }
         public decimal TotalPrice { get; set; }
         public DateTime? CancellationDeadline { get; set; }
-        public BookingStatus Status { get; set; }
+        public string Status { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? ConfirmedAt { get; set; }
         public DateTime? CompletedAt { get; set; }
         public DateTime? CancelledAt { get; set; }
         public string? CancellationReason { get; set; }
-        public PaymentStatus PaymentStatus { get; set; }
+        public string PaymentStatus { get; set; }
         public string? PaymentMethod { get; set; }
         public string? TransactionId { get; set; }
         public DateTime? PaidAt { get; set; }

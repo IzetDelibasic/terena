@@ -36,7 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
       Map<String, dynamic> searchObj = {};
 
       if (searchController.text.isNotEmpty) {
-        searchObj['name'] = searchController.text;
+        searchObj['searchTerm'] = searchController.text;
       }
 
       if (selectedLocation != null) {
@@ -56,7 +56,9 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         venuesResult = result;
       });
-    } catch (e) {}
+    } catch (e) {
+      print('Error loading venues: $e');
+    }
   }
 
   void clearFilters() {

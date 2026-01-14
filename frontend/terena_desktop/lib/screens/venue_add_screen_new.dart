@@ -968,19 +968,6 @@ class _VenueAddScreenNewState extends State<VenueAddScreenNew> {
                 0,
           },
           'cancellationPolicy': {
-            'freeUntil':
-                DateTime.now()
-                    .add(
-                      Duration(
-                        hours:
-                            int.tryParse(
-                              values['cancellationPolicyHours']?.toString() ??
-                                  '0',
-                            ) ??
-                            0,
-                      ),
-                    )
-                    .toIso8601String(),
             'fee':
                 double.tryParse(
                   values['cancellationFeePercentage']?.toString() ?? '0',

@@ -33,6 +33,11 @@ builder.Services.AddScoped<Terena.Services.Interfaces.IBookingService, Terena.Se
 builder.Services.AddScoped<Terena.Services.ReviewService>();
 builder.Services.AddScoped<Terena.Services.FavoriteService>();
 builder.Services.AddScoped<Terena.Services.PaymentService>();
+builder.Services.AddScoped<Terena.Services.Interfaces.IRecommendationService, Terena.Services.RecommendationService>();
+builder.Services.AddSingleton<Terena.Services.Messaging.IRabbitMQProducer, Terena.Services.Messaging.RabbitMQProducer>();
+builder.Services.AddScoped<Terena.Services.Interfaces.INotificationService, Terena.Services.NotificationService>();
+builder.Services.AddScoped<Terena.Services.Interfaces.IEmailService, Terena.Services.EmailService>();
+builder.Services.AddHostedService<Terena.API.BackgroundServices.EmailConsumerService>();
 
 var app = builder.Build();
 

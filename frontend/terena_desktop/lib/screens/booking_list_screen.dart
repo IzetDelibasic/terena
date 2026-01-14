@@ -556,6 +556,9 @@ class BookingDataSource extends AdvancedDataTableSource<Booking> {
     if (statusText == "Pending") {
       statusColor = Colors.orange;
       statusText = "Pending";
+    } else if (statusText == "Accepted") {
+      statusColor = Colors.lightGreen;
+      statusText = "Accepted";
     } else if (statusText == "Confirmed") {
       statusColor = Colors.green;
       statusText = "Confirmed";
@@ -565,6 +568,9 @@ class BookingDataSource extends AdvancedDataTableSource<Booking> {
     } else if (statusText == "Completed") {
       statusColor = Colors.blue;
       statusText = "Completed";
+    } else if (statusText == "Expired") {
+      statusColor = Colors.grey;
+      statusText = "Expired";
     }
 
     return DataRow(
@@ -616,7 +622,7 @@ class BookingDataSource extends AdvancedDataTableSource<Booking> {
                   ),
                 ],
               )
-              : (item?.status == "Accepted" || item?.status == "Completed")
+              : (item?.status == "Accepted" || item?.status == "Confirmed")
               ? IconButton(
                 icon: Icon(Icons.cancel_outlined, color: Colors.orange[700]),
                 tooltip: 'Cancel & Refund',

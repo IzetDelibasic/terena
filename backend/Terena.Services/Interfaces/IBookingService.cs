@@ -16,5 +16,6 @@ namespace Terena.Services.Interfaces
         Task<BookingDTO> ProcessPaymentAsync(int bookingId, string transactionId);
         Task<BookingDTO> RefundBookingAsync(int bookingId, decimal? refundAmount = null);
         Task<List<string>> GetAvailableTimeSlotsAsync(int venueId, DateTime date, int? courtId = null);
+        Task<int> GetMaxDurationForSlotAsync(int venueId, DateTime date, string timeSlot, int? courtId = null);
     }
 }

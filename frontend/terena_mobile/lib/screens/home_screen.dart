@@ -5,6 +5,7 @@ import '../models/venue.dart';
 import '../models/booking.dart';
 import '../providers/venue_provider.dart';
 import '../providers/booking_provider.dart';
+import '../providers/recommendation_provider.dart';
 import '../providers/auth_provider.dart';
 import 'venue_details_screen.dart';
 import 'all_venues_screen.dart';
@@ -21,6 +22,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final _venueProvider = VenueProvider();
   final _bookingProvider = BookingProvider();
+  final _recommendationProvider = RecommendationProvider();
   List<Venue> _venues = [];
   List<Venue> _recommendedVenues = [];
   List<Booking> _upcomingBookings = [];
@@ -51,23 +53,15 @@ class _HomeScreenState extends State<HomeScreen> {
         widget.authProvider.currentUser!.id,
       );
 
-      final recommended = List<Venue>.from(venues);
-
-      final bookedVenueIds = bookings.map((b) => b.venueId).toSet();
-
-      recommended.sort((a, b) {
-        final aBooked = bookedVenueIds.contains(a.id) ? 1 : 0;
-        final bBooked = bookedVenueIds.contains(b.id) ? 1 : 0;
-        if (aBooked != bBooked) return bBooked.compareTo(aBooked);
-
-        final ratingA = a.rating ?? 0;
-        final ratingB = b.rating ?? 0;
-        return ratingB.compareTo(ratingA);
-      });
+      final recommended = await _recommendationProvider.getRecommendations(
+        widget.authProvider.currentUser!.id,
+        count: 6,
+      );
 
       setState(() {
         _venues = venues;
-        _recommendedVenues = recommended.take(3).toList();
+        _recommendedVenues =
+            recommended.isNotEmpty ? recommended : venues.take(6).toList();
         _upcomingBookings =
             bookings
                 .where((b) => b.status == 'CONFIRMED' || b.status == 'PENDING')
@@ -76,7 +70,6 @@ class _HomeScreenState extends State<HomeScreen> {
         _isLoading = false;
       });
     } catch (e) {
-      print('Error loading data: $e');
       setState(() {
         _isLoading = false;
       });
@@ -234,10 +227,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 20,
                               ),
-                              itemCount: _upcomingBookings.length,
+                              itemCount: _upcomingBookings.take(3).length,
                               itemBuilder: (context, index) {
                                 return _buildBookingCard(
-                                  _upcomingBookings[index],
+                                  _upcomingBookings.take(3).toList()[index],
                                 );
                               },
                             ),
@@ -278,10 +271,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: ListView.builder(
                             scrollDirection: Axis.horizontal,
                             padding: const EdgeInsets.symmetric(horizontal: 20),
-                            itemCount: _recommendedVenues.length,
+                            itemCount: _recommendedVenues.take(3).length,
                             itemBuilder: (context, index) {
                               return _buildRecommendedCard(
-                                _recommendedVenues[index],
+                                _recommendedVenues.take(3).toList()[index],
                               );
                             },
                           ),
@@ -321,9 +314,11 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: ListView.builder(
                             scrollDirection: Axis.horizontal,
                             padding: const EdgeInsets.symmetric(horizontal: 20),
-                            itemCount: _filteredVenues.take(5).length,
+                            itemCount: _filteredVenues.take(3).length,
                             itemBuilder: (context, index) {
-                              return _buildVenueCard(_filteredVenues[index]);
+                              return _buildVenueCard(
+                                _filteredVenues.take(3).toList()[index],
+                              );
                             },
                           ),
                         ),
@@ -453,102 +448,200 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       },
       child: Container(
-        width: 200,
+        width: 220,
         margin: const EdgeInsets.only(right: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(20),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Stack(
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(16),
+                  ),
                   child: Container(
-                    height: 120,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    height: 140,
+                    width: double.infinity,
+                    decoration: BoxDecoration(color: Colors.grey[300]),
                     child:
                         venue.imageUrl != null && venue.imageUrl!.isNotEmpty
-                            ? _buildVenueImage(venue.imageUrl!, 120)
+                            ? _buildVenueImage(venue.imageUrl!, 140)
                             : Center(
                               child: Icon(
                                 Icons.sports_soccer,
-                                size: 50,
+                                size: 60,
                                 color: Colors.grey[400],
                               ),
                             ),
                   ),
                 ),
                 Positioned(
-                  top: 8,
-                  right: 8,
+                  top: 10,
+                  right: 10,
                   child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: const BoxDecoration(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
                       color: Colors.white,
                       shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withAlpha(25),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
-                    child: const Icon(Icons.favorite_border, size: 18),
+                    child: Icon(
+                      Icons.favorite_border,
+                      size: 18,
+                      color: Colors.grey[700],
+                    ),
                   ),
                 ),
+                if (venue.rating != null && venue.rating! >= 4.5)
+                  Positioned(
+                    top: 10,
+                    left: 10,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.amber[700],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.star, size: 12, color: Colors.white),
+                          const SizedBox(width: 4),
+                          Text(
+                            venue.rating!.toStringAsFixed(1),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
               ],
             ),
-            const SizedBox(height: 6),
-            Text(
-              venue.name,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 3),
-            Row(
-              children: [
-                const Icon(Icons.location_on, size: 12, color: Colors.grey),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Text(
-                    venue.location ?? '',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    venue.name,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                      height: 1.2,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 3),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.star, size: 14, color: Colors.amber),
-                const SizedBox(width: 4),
-                if (venue.rating != null && venue.rating! > 0) ...[
-                  Text(
-                    venue.rating!.toStringAsFixed(1),
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.location_on,
+                        size: 14,
+                        color: Colors.grey[600],
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          venue.location ?? '',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
-                  if (venue.reviewCount != null && venue.reviewCount! > 0) ...[
-                    const SizedBox(width: 2),
-                    Text(
-                      '(${venue.reviewCount})',
-                      style: TextStyle(fontSize: 11, color: Colors.grey[600]),
-                    ),
-                  ],
-                ] else ...[
-                  const Text('New', style: TextStyle(fontSize: 12)),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      if (venue.rating != null && venue.rating! > 0)
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.star,
+                              size: 14,
+                              color: Colors.amber,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              venue.rating!.toStringAsFixed(1),
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            if (venue.reviewCount != null &&
+                                venue.reviewCount! > 0) ...[
+                              const SizedBox(width: 2),
+                              Text(
+                                '(${venue.reviewCount})',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ],
+                        )
+                      else
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.green[50],
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            'New',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.green[700],
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      Text(
+                        '${venue.pricePerHour?.toStringAsFixed(0)} BAM/h',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: Colors.green[700],
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
-                const Spacer(),
-                Text(
-                  '${venue.pricePerHour?.toStringAsFixed(0)} BAM/h',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
+              ),
             ),
           ],
         ),
@@ -575,12 +668,12 @@ class _HomeScreenState extends State<HomeScreen> {
         margin: const EdgeInsets.only(right: 12),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 2),
+              color: Colors.black.withAlpha(20),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
@@ -591,16 +684,12 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 ClipRRect(
                   borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(12),
+                    top: Radius.circular(16),
                   ),
                   child: Container(
                     height: 120,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(12),
-                      ),
-                    ),
+                    width: double.infinity,
+                    decoration: BoxDecoration(color: Colors.grey[300]),
                     child:
                         venue.imageUrl != null && venue.imageUrl!.isNotEmpty
                             ? _buildVenueImage(venue.imageUrl!, 120)
@@ -617,18 +706,69 @@ class _HomeScreenState extends State<HomeScreen> {
                   top: 8,
                   right: 8,
                   child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: const BoxDecoration(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
                       color: Colors.white,
                       shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withAlpha(25),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
-                    child: const Icon(Icons.favorite_border, size: 18),
+                    child: Icon(
+                      Icons.favorite_border,
+                      size: 18,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 8,
+                  left: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.red[600],
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withAlpha(30),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.local_fire_department,
+                          size: 14,
+                          color: Colors.white,
+                        ),
+                        const SizedBox(width: 4),
+                        const Text(
+                          'Top Rated',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
             ),
             Padding(
-              padding: const EdgeInsets.all(10.0),
+              padding: const EdgeInsets.all(12.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -636,18 +776,19 @@ class _HomeScreenState extends State<HomeScreen> {
                     venue.name,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 14,
+                      fontSize: 15,
+                      height: 1.2,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 3),
+                  const SizedBox(height: 6),
                   Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.location_on,
-                        size: 12,
-                        color: Colors.grey,
+                        size: 14,
+                        color: Colors.grey[600],
                       ),
                       const SizedBox(width: 4),
                       Expanded(
@@ -663,40 +804,44 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 3),
+                  const SizedBox(height: 8),
                   Row(
-                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Icon(Icons.star, size: 14, color: Colors.amber),
-                      const SizedBox(width: 4),
-                      if (venue.rating != null && venue.rating! > 0) ...[
-                        Text(
-                          venue.rating!.toStringAsFixed(1),
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        if (venue.reviewCount != null &&
-                            venue.reviewCount! > 0) ...[
-                          const SizedBox(width: 2),
-                          Text(
-                            '(${venue.reviewCount})',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Colors.grey[600],
+                      Row(
+                        children: [
+                          const Icon(Icons.star, size: 16, color: Colors.amber),
+                          const SizedBox(width: 4),
+                          if (venue.rating != null && venue.rating! > 0) ...[
+                            Text(
+                              venue.rating!.toStringAsFixed(1),
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
+                            if (venue.reviewCount != null &&
+                                venue.reviewCount! > 0) ...[
+                              const SizedBox(width: 4),
+                              Text(
+                                '(${venue.reviewCount})',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ] else ...[
+                            const Text('New', style: TextStyle(fontSize: 12)),
+                          ],
                         ],
-                      ] else ...[
-                        const Text('New', style: TextStyle(fontSize: 12)),
-                      ],
-                      const Spacer(),
+                      ),
                       Text(
                         '${venue.pricePerHour?.toStringAsFixed(0)} BAM/h',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
+                          color: Colors.green[700],
                         ),
                       ),
                     ],

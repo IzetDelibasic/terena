@@ -63,7 +63,6 @@ namespace Terena.Services.Database
     public class CancellationPolicy
     {
         public int Id { get; set; }
-        public DateTime FreeUntil { get; set; }
         public decimal Fee { get; set; }
         public int VenueId { get; set; }
         public Venue Venue { get; set; }

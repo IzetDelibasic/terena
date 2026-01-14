@@ -24,14 +24,7 @@ class AuthProvider extends ChangeNotifier {
       Map<String, String> headers = {"Content-Type": "application/json"};
       var body = jsonEncode({"username": username, "password": password});
 
-      print('Login attempt - URL: $url');
-      print('Login attempt - Username: $username');
-      print('Login attempt - Body: $body');
-
       var response = await http.post(uri, headers: headers, body: body);
-
-      print('Login response - Status: ${response.statusCode}');
-      print('Login response - Body: ${response.body}');
 
       if (response.statusCode == 200) {
         var data = jsonDecode(response.body);
@@ -59,13 +52,11 @@ class AuthProvider extends ChangeNotifier {
             _lastError = 'Invalid username or password';
           }
         } catch (e) {
-          print('Error parsing response: $e');
           _lastError = 'Invalid username or password';
         }
       }
       return false;
     } catch (e) {
-      print('Login error: $e');
       _lastError = 'Network error. Please try again.';
       return false;
     }
@@ -101,7 +92,6 @@ class AuthProvider extends ChangeNotifier {
       }
       return false;
     } catch (e) {
-      print('Registration error: $e');
       return false;
     }
   }
@@ -123,13 +113,7 @@ class AuthProvider extends ChangeNotifier {
         "phone": phone,
       });
 
-      print('Update profile - URL: $url');
-      print('Update profile - Body: $body');
-
       var response = await http.put(uri, headers: headers, body: body);
-
-      print('Update response - Status: ${response.statusCode}');
-      print('Update response - Body: ${response.body}');
 
       if (response.statusCode == 200) {
         var data = jsonDecode(response.body);
@@ -142,7 +126,6 @@ class AuthProvider extends ChangeNotifier {
       }
       return false;
     } catch (e) {
-      print('Update profile error: $e');
       return false;
     }
   }

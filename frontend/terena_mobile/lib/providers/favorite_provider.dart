@@ -21,9 +21,6 @@ class FavoriteProvider extends ChangeNotifier {
       var uri = Uri.parse(url);
       var response = await http.get(uri);
 
-      print('Get favorites - Status: ${response.statusCode}');
-      print('Get favorites - Body: ${response.body}');
-
       if (response.statusCode == 200) {
         List<dynamic> data = jsonDecode(response.body);
         _favorites = data.map((json) => Venue.fromJson(json['venue'])).toList();
@@ -35,7 +32,6 @@ class FavoriteProvider extends ChangeNotifier {
       notifyListeners();
       return [];
     } catch (e) {
-      print('Error fetching favorites: $e');
       _isLoading = false;
       notifyListeners();
       return [];
@@ -50,12 +46,7 @@ class FavoriteProvider extends ChangeNotifier {
       Map<String, String> headers = {"Content-Type": "application/json"};
       var body = jsonEncode({"userId": userId, "venueId": venueId});
 
-      print('Add favorite - URL: $url');
-      print('Add favorite - Body: $body');
-
       var response = await http.post(uri, headers: headers, body: body);
-
-      print('Add favorite - Status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         await getUserFavorites(userId);
@@ -63,7 +54,6 @@ class FavoriteProvider extends ChangeNotifier {
       }
       return false;
     } catch (e) {
-      print('Error adding favorite: $e');
       return false;
     }
   }
@@ -73,11 +63,7 @@ class FavoriteProvider extends ChangeNotifier {
       var url = "$baseUrl/Favorite/user/$userId/venue/$venueId";
       var uri = Uri.parse(url);
 
-      print('Remove favorite - URL: $url');
-
       var response = await http.delete(uri);
-
-      print('Remove favorite - Status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         await getUserFavorites(userId);
@@ -85,7 +71,6 @@ class FavoriteProvider extends ChangeNotifier {
       }
       return false;
     } catch (e) {
-      print('Error removing favorite: $e');
       return false;
     }
   }
@@ -101,7 +86,6 @@ class FavoriteProvider extends ChangeNotifier {
       }
       return false;
     } catch (e) {
-      print('Error checking favorite: $e');
       return false;
     }
   }

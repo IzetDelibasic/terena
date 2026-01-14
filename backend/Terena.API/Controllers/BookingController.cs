@@ -100,6 +100,13 @@ namespace Terena.API.Controllers
             return Ok(slots);
         }
 
+        [HttpGet("max-duration")]
+        public async Task<ActionResult<int>> GetMaxDurationForSlot([FromQuery] int venueId, [FromQuery] DateTime date, [FromQuery] string timeSlot, [FromQuery] int? courtId = null)
+        {
+            var maxDuration = await _bookingService.GetMaxDurationForSlotAsync(venueId, date, timeSlot, courtId);
+            return Ok(maxDuration);
+        }
+
         [HttpGet("admin/all")]
         public async Task<ActionResult> GetAllBookingsForAdmin([FromQuery] BookingSearchObject search)
         {
@@ -110,15 +117,29 @@ namespace Terena.API.Controllers
         [HttpPost("{id}/admin/confirm")]
         public async Task<ActionResult<BookingDTO>> AdminConfirmBooking(int id)
         {
-            var result = await _bookingService.ConfirmBookingAsync(id);
-            return Ok(result);
+            try
+            {
+                var result = await _bookingService.ConfirmBookingAsync(id);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
         }
 
         [HttpPost("{id}/admin/reject")]
         public async Task<ActionResult<BookingDTO>> AdminRejectBooking(int id, [FromBody] CancelBookingRequest request)
         {
-            var result = await _bookingService.CancelBookingAsync(id, request.CancellationReason ?? "Rejected by admin");
-            return Ok(result);
+            try
+            {
+                var result = await _bookingService.CancelBookingAsync(id, request.CancellationReason ?? "Rejected by admin");
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
         }
     }
 }

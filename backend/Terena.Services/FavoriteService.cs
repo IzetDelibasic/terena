@@ -60,6 +60,8 @@ namespace Terena.Services
                 .ThenInclude(v => v.Reviews)
                 .Include(f => f.Venue.Amenities)
                 .Include(f => f.Venue.OperatingHours)
+                .Include(f => f.Venue.CancellationPolicy)
+                .Include(f => f.Venue.Discount)
                 .OrderByDescending(f => f.CreatedAt)
                 .ToListAsync();
 
@@ -101,8 +103,15 @@ namespace Terena.Services
                             StartTime = oh.StartTime,
                             EndTime = oh.EndTime
                         }).ToList() ?? new List<OperatingHourDTO>(),
-                        CancellationPolicy = new CancellationPolicyDTO(),
-                        Discount = new DiscountDTO()
+                        CancellationPolicy = f.Venue.CancellationPolicy != null ? new CancellationPolicyDTO
+                        {
+                            Fee = f.Venue.CancellationPolicy.Fee
+                        } : null,
+                        Discount = f.Venue.Discount != null ? new DiscountDTO
+                        {
+                            Percentage = f.Venue.Discount.Percentage,
+                            ForBookings = f.Venue.Discount.ForBookings
+                        } : null
                     }
                 };
             }).ToList();

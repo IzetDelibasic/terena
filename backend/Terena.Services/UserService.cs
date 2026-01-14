@@ -55,14 +55,49 @@ namespace Terena.Services
 
         public override void BeforeInsert(UserInsertRequest request, User entity)
         {
+            var emailExists = Context.Set<User>().Any(u => u.Email.ToLower() == request.Email.ToLower());
+            if (emailExists)
+            {
+                throw new UserException("A user with this email address already exists.");
+            }
+
+            var usernameExists = Context.Set<User>().Any(u => u.Username.ToLower() == request.Username.ToLower());
+            if (usernameExists)
+            {
+                throw new UserException("A user with this username already exists.");
+            }
+
             entity.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
             entity.RegistrationDate = DateTime.UtcNow;
             entity.Status = UserStatus.Active;
             entity.Role = request.Role;
+            entity.Username = request.Username;
+            entity.Email = request.Email;
+            entity.Phone = request.Phone;
+            entity.Country = request.Country;
+            entity.Address = request.Address;
         }
 
         public override void BeforeUpdate(UserUpdateRequest request, User entity)
         {
+            if (!string.IsNullOrWhiteSpace(request.Email) && request.Email.ToLower() != entity.Email.ToLower())
+            {
+                var emailExists = Context.Set<User>().Any(u => u.Id != entity.Id && u.Email.ToLower() == request.Email.ToLower());
+                if (emailExists)
+                {
+                    throw new UserException("A user with this email address already exists.");
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.Username) && request.Username.ToLower() != entity.Username.ToLower())
+            {
+                var usernameExists = Context.Set<User>().Any(u => u.Id != entity.Id && u.Username.ToLower() == request.Username.ToLower());
+                if (usernameExists)
+                {
+                    throw new UserException("A user with this username already exists.");
+                }
+            }
+
             if (!string.IsNullOrWhiteSpace(request.Password))
             {
                 entity.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
@@ -70,19 +105,19 @@ namespace Terena.Services
 
             if (!string.IsNullOrWhiteSpace(request.Username))
                 entity.Username = request.Username;
-            
+
             if (!string.IsNullOrWhiteSpace(request.Email))
                 entity.Email = request.Email;
-            
+
             if (!string.IsNullOrWhiteSpace(request.Phone))
                 entity.Phone = request.Phone;
-            
+
             if (!string.IsNullOrWhiteSpace(request.Country))
                 entity.Country = request.Country;
-            
+
             if (!string.IsNullOrWhiteSpace(request.Address))
                 entity.Address = request.Address;
-            
+
         }
 
         public async Task<UserModel> BlockUser(int id, string reason)
