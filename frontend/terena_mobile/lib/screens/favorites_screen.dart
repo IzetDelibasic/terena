@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/venue.dart';
@@ -15,6 +16,8 @@ class FavoritesScreen extends StatefulWidget {
 }
 
 class _FavoritesScreenState extends State<FavoritesScreen> {
+  String _sortOrder = 'none';
+
   @override
   void initState() {
     super.initState();
@@ -53,6 +56,83 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     }
   }
 
+  void _showSortOptions() {
+    showModalBottomSheet(
+      context: context,
+      builder:
+          (context) => Container(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Sort by',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
+                ListTile(
+                  leading: Icon(
+                    Icons.check,
+                    color:
+                        _sortOrder == 'none'
+                            ? Colors.green[700]
+                            : Colors.transparent,
+                  ),
+                  title: const Text('Default'),
+                  onTap: () {
+                    setState(() {
+                      _sortOrder = 'none';
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
+                ListTile(
+                  leading: Icon(
+                    Icons.check,
+                    color:
+                        _sortOrder == 'a-z'
+                            ? Colors.green[700]
+                            : Colors.transparent,
+                  ),
+                  title: const Text('Name (A-Z)'),
+                  onTap: () {
+                    setState(() {
+                      _sortOrder = 'a-z';
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
+                ListTile(
+                  leading: Icon(
+                    Icons.check,
+                    color:
+                        _sortOrder == 'z-a'
+                            ? Colors.green[700]
+                            : Colors.transparent,
+                  ),
+                  title: const Text('Name (Z-A)'),
+                  onTap: () {
+                    setState(() {
+                      _sortOrder = 'z-a';
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            ),
+          ),
+    );
+  }
+
+  List<Venue> _getSortedVenues(List<Venue> venues) {
+    if (_sortOrder == 'a-z') {
+      return [...venues]..sort((a, b) => a.name.compareTo(b.name));
+    } else if (_sortOrder == 'z-a') {
+      return [...venues]..sort((a, b) => b.name.compareTo(a.name));
+    }
+    return venues;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<FavoriteProvider>(
@@ -78,25 +158,40 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
   Widget _buildVenuesList(List<Venue> favoriteVenues) {
     if (favoriteVenues.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.favorite_border, size: 80, color: Colors.grey[400]),
-            const SizedBox(height: 16),
-            Text(
-              'No favorite venues yet',
-              style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+      return RefreshIndicator(
+        onRefresh: _loadFavorites,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height - 200,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.favorite_border,
+                    size: 80,
+                    color: Colors.grey[400],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No favorite venues yet',
+                    style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Start adding venues to your favorites!',
+                    style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              'Start adding venues to your favorites!',
-              style: TextStyle(fontSize: 14, color: Colors.grey[500]),
-            ),
-          ],
+          ),
         ),
       );
     }
+
+    final sortedVenues = _getSortedVenues(favoriteVenues);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -111,7 +206,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                 style: TextStyle(fontSize: 14, color: Colors.grey[600]),
               ),
               TextButton(
-                onPressed: () {},
+                onPressed: _showSortOptions,
                 child: Row(
                   children: [
                     const Text('Sort by'),
@@ -124,12 +219,15 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           ),
         ),
         Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: favoriteVenues.length,
-            itemBuilder: (context, index) {
-              return _buildVenueCard(favoriteVenues[index]);
-            },
+          child: RefreshIndicator(
+            onRefresh: _loadFavorites,
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: sortedVenues.length,
+              itemBuilder: (context, index) {
+                return _buildVenueCard(sortedVenues[index]);
+              },
+            ),
           ),
         ),
       ],
@@ -183,21 +281,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     child:
                         venue.venueImageUrl != null &&
                                 venue.venueImageUrl!.isNotEmpty
-                            ? Image.network(
-                              venue.venueImageUrl!,
-                              width: double.infinity,
-                              height: 180,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Center(
-                                  child: Icon(
-                                    _getSportIcon(venue.sportType),
-                                    size: 60,
-                                    color: Colors.grey[400],
-                                  ),
-                                );
-                              },
-                            )
+                            ? _buildVenueImage(venue.venueImageUrl!, 180)
                             : Center(
                               child: Icon(
                                 _getSportIcon(venue.sportType),
@@ -395,6 +479,76 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         return Icons.sports_volleyball;
       default:
         return Icons.sports_soccer;
+    }
+  }
+
+  Widget _buildVenueImage(String imageUrl, double height) {
+    if (imageUrl.isEmpty) {
+      return Container(
+        color: Colors.grey[300],
+        width: double.infinity,
+        height: height,
+        child: Center(
+          child: Icon(Icons.sports_soccer, size: 50, color: Colors.grey[400]),
+        ),
+      );
+    }
+
+    try {
+      if (imageUrl.startsWith('data:image')) {
+        final base64Data = imageUrl.split(',')[1];
+        final bytes = base64Decode(base64Data);
+        return Image.memory(
+          bytes,
+          width: double.infinity,
+          height: height,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              color: Colors.grey[300],
+              width: double.infinity,
+              height: height,
+              child: Center(
+                child: Icon(
+                  Icons.sports_soccer,
+                  size: 50,
+                  color: Colors.grey[400],
+                ),
+              ),
+            );
+          },
+        );
+      } else {
+        return Image.network(
+          imageUrl,
+          width: double.infinity,
+          height: height,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              color: Colors.grey[300],
+              width: double.infinity,
+              height: height,
+              child: Center(
+                child: Icon(
+                  Icons.sports_soccer,
+                  size: 50,
+                  color: Colors.grey[400],
+                ),
+              ),
+            );
+          },
+        );
+      }
+    } catch (e) {
+      return Container(
+        color: Colors.grey[300],
+        width: double.infinity,
+        height: height,
+        child: Center(
+          child: Icon(Icons.sports_soccer, size: 50, color: Colors.grey[400]),
+        ),
+      );
     }
   }
 }

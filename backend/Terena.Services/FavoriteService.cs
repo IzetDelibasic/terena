@@ -19,6 +19,10 @@ namespace Terena.Services
 
         public async Task<FavoriteVenueDTO> AddFavoriteAsync(int userId, int venueId)
         {
+            var venue = await _context.Venues.FirstOrDefaultAsync(v => v.Id == venueId);
+            if (venue == null || venue.IsDeleted)
+                throw new Exception("Venue not found or has been deleted!");
+
             var existingFavorite = await _context.UserFavoriteVenues
                 .FirstOrDefaultAsync(f => f.UserId == userId && f.VenueId == venueId);
 
@@ -55,7 +59,7 @@ namespace Terena.Services
         public async Task<List<FavoriteVenueDTO>> GetUserFavoritesAsync(int userId)
         {
             var favorites = await _context.UserFavoriteVenues
-                .Where(f => f.UserId == userId)
+                .Where(f => f.UserId == userId && !f.Venue.IsDeleted)
                 .Include(f => f.Venue)
                 .ThenInclude(v => v.Reviews)
                 .Include(f => f.Venue.Amenities)
@@ -120,7 +124,8 @@ namespace Terena.Services
         public async Task<bool> IsFavoriteAsync(int userId, int venueId)
         {
             return await _context.UserFavoriteVenues
-                .AnyAsync(f => f.UserId == userId && f.VenueId == venueId);
+                .Include(f => f.Venue)
+                .AnyAsync(f => f.UserId == userId && f.VenueId == venueId && !f.Venue.IsDeleted);
         }
 
         private async Task<FavoriteVenueDTO> GetFavoriteByIdAsync(int id)

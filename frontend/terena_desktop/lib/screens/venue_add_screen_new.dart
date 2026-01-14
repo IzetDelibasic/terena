@@ -32,6 +32,43 @@ class _VenueAddScreenNewState extends State<VenueAddScreenNew> {
     {'icon': Icons.policy, 'title': 'Policies'},
   ];
 
+  bool _isCurrentTabValid() {
+    final formState = _formKey.currentState;
+    if (formState == null) return false;
+
+    switch (selectedTab) {
+      case 0:
+        final name = formState.fields['name']?.value;
+        final sportType = formState.fields['sportType']?.value;
+        final location = formState.fields['location']?.value;
+        final address = formState.fields['address']?.value;
+        final surfaceType = formState.fields['surfaceType']?.value;
+        return name != null &&
+            name.toString().isNotEmpty &&
+            sportType != null &&
+            location != null &&
+            address != null &&
+            address.toString().isNotEmpty &&
+            surfaceType != null;
+      case 1:
+        return true;
+      case 2:
+        final pricePerHour = formState.fields['pricePerHour']?.value;
+        final contactPhone = formState.fields['contactPhone']?.value;
+        final contactEmail = formState.fields['contactEmail']?.value;
+        return pricePerHour != null &&
+            pricePerHour.toString().isNotEmpty &&
+            contactPhone != null &&
+            contactPhone.toString().isNotEmpty &&
+            contactEmail != null &&
+            contactEmail.toString().isNotEmpty;
+      case 3:
+        return true;
+      default:
+        return false;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -88,6 +125,9 @@ class _VenueAddScreenNewState extends State<VenueAddScreenNew> {
                           padding: const EdgeInsets.all(40),
                           child: FormBuilder(
                             key: _formKey,
+                            onChanged: () {
+                              setState(() {});
+                            },
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -887,12 +927,17 @@ class _VenueAddScreenNewState extends State<VenueAddScreenNew> {
           children: [
             if (selectedTab < tabs.length - 1)
               ElevatedButton.icon(
-                onPressed: () => setState(() => selectedTab++),
+                onPressed:
+                    _isCurrentTabValid()
+                        ? () => setState(() => selectedTab++)
+                        : null,
                 icon: const Icon(Icons.arrow_forward),
                 label: const Text('NEXT'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color.fromRGBO(32, 76, 56, 1),
                   foregroundColor: Colors.white,
+                  disabledBackgroundColor: Colors.grey[400],
+                  disabledForegroundColor: Colors.white70,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 30,
                     vertical: 16,

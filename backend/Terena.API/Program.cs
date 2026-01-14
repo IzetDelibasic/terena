@@ -47,12 +47,15 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = services.GetRequiredService<Terena.Services.Database.TerenaDbContext>();
-        var seeder = new Terena.Services.Database.DatabaseSeeder(context);
+
+        await context.Database.MigrateAsync();
+
+        var seeder = new Terena.Services.Database.ComprehensiveSeeder(context);
         await seeder.SeedAsync();
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"An error occurred seeding the DB: {ex.Message}");
+        Console.WriteLine($"An error occurred during database initialization: {ex.Message}");
     }
 }
 
